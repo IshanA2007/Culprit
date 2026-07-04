@@ -115,6 +115,21 @@ def test_offered_runbook_is_present_and_offer_only():
     assert "never executes" in body.lower() or "offer" in body.lower()
 
 
+def test_thread_renders_discussion_section():
+    thread = [
+        {"author": "alice", "content": "rolling back the search deploy"},
+        {"author": "bob", "content": "confirmed green"},
+    ]
+    body = _draft(thread=thread).body
+    assert "## Discussion" in body
+    assert "alice" in body and "rolling back the search deploy" in body
+
+
+def test_no_thread_omits_discussion_cleanly():
+    body = _draft().body
+    assert "## Discussion" not in body  # complete without the human-narrative half
+
+
 def test_slug_path_branch_are_deterministic_and_byte_stable():
     d1, d2 = _draft(), _draft()
     assert d1.path == d2.path
