@@ -49,6 +49,30 @@ async def _find_open_incident(
     return (await session.execute(stmt)).scalars().first()
 
 
+async def _find_cross_source_incident(
+    session: AsyncSession, signal: Signal, window_seconds: int
+) -> Incident | None:
+    """Windowed cross-source join (plan decision 7).
+
+    A CloudWatch alarm and a Sentry event for the same outage carry different
+    fingerprints (AlarmName vs Sentry title), so fingerprint matching can't dedup
+    them. tCF runs one service, so an alarm within the window of an open incident
+    is treated as the same outage: it joins the most recent open incident rather
+    than opening a second one. A documented single-service tradeoff — revisit if
+    concurrent distinct outages ever false-merge.
+    """
+    if signal.received_at is None:
+        return None
+    window_start = signal.received_at - timedelta(seconds=window_seconds)
+    stmt = (
+        select(Incident)
+        .where(Incident.status == "open", Incident.opened_at >= window_start)
+        .order_by(Incident.opened_at.desc())
+        .limit(1)
+    )
+    return (await session.execute(stmt)).scalars().first()
+
+
 async def correlate_signal(
     session: AsyncSession, signal: Signal | None, window_seconds: int
 ) -> Incident | None:
@@ -59,6 +83,10 @@ async def correlate_signal(
         return await session.get(Incident, signal.incident_id)
 
     incident = await _find_open_incident(session, signal, window_seconds)
+    # Cross-source: an alarm with no fingerprint match joins an open incident in
+    # the window (single service) instead of opening a duplicate (decision 7).
+    if incident is None and signal.source == "cloudwatch":
+        incident = await _find_cross_source_incident(session, signal, window_seconds)
     if incident is None:
         incident = Incident(
             opened_at=signal.received_at,

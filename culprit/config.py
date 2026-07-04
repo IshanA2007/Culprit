@@ -54,6 +54,22 @@ class Settings(BaseSettings):
     # same-correlation-key signals within this many seconds join it (HANDOFF §4).
     correlation_window_seconds: int = 600
 
+    # SNS/CloudWatch ingest (M3). All optional/inert by default.
+    aws_region: str = "us-east-1"
+    # Comma-separated TopicArn allowlist; empty = accept any topic.
+    sns_allowed_topic_arns: str | None = None
+    # Require a valid SNS signature (X.509). Off lets a dev POST unsigned fixtures.
+    sns_signature_strict: bool = True
+    # Dev/fixture cert override: verify against this local PEM instead of fetching
+    # SigningCertURL. Unset in production -> fetch from the allowlisted amazonaws.com
+    # host. (The synthesized fixtures are signed by the vendored keypair.)
+    sns_signing_cert_path: str | None = None
+
+    # When true, ingest routes run the analysis pipeline in the background and post
+    # the brief. Off by default so tests never fire live network/Discord calls; the
+    # serve smoke-check turns it on.
+    autorun_pipeline: bool = False
+
 
 @lru_cache
 def get_settings() -> Settings:
