@@ -1,0 +1,38 @@
+run_id: 20260704T040118-search-silent-zero-results-w4
+fault_id: search-silent-zero-results
+fault_class: code
+ground_truth: culprit_commit
+base_sha: 172effabd7f7dc6ccee9f2b69540835eacf77bf0
+release_sha: c9ae3bba3ba47792e97a6615648bf649d2f9fcd3
+window:
+- sha: 872f77eee749fbbfd09a7ecfb2c89f8954a66ed1
+  message: 'docs: clarify pagination guard fallback behavior'
+  is_culprit: false
+  is_decoy: true
+- sha: 327b7f94a211057722ad1ce30033d8370037b2aa
+  message: 'search: tighten similarity threshold'
+  is_culprit: true
+  is_decoy: false
+- sha: e5bb96f87bf3307ebf99ebdca6f160562498162a
+  message: 'docs: expand browse view docstring with mode-dispatch details'
+  is_culprit: false
+  is_decoy: true
+- sha: c9ae3bba3ba47792e97a6615648bf649d2f9fcd3
+  message: 'docs: clarify /health short-circuit in health check middleware'
+  is_culprit: false
+  is_decoy: true
+culprit_sha: 327b7f94a211057722ad1ce30033d8370037b2aa
+injected_at: 20260704T040118
+first_signal_at: null
+decoy_config:
+  size: 4
+  position: middle
+  seed: 1016
+  decoys:
+  - decoy-pagination-comment
+  - decoy-browse-docstring
+  - decoy-health-comment
+  traffic_5xx: 0
+fixture_paths: []
+log_paths:
+- fixtures/logs/20260704T040118-search-silent-zero-results-w4-web.log

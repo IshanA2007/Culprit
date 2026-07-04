@@ -1,0 +1,38 @@
+run_id: 20260704T040323-redis-down-w3
+fault_id: redis-down
+fault_class: infra
+ground_truth: abstain
+base_sha: 172effabd7f7dc6ccee9f2b69540835eacf77bf0
+release_sha: dd3d21804fca2a3fa3868d84b828158dc2218144
+window:
+- sha: 4b82fda607c02938e1cb6e6c76beadae2c55b590
+  message: 'docs: clarify parse_mode return tuple and default'
+  is_culprit: false
+  is_decoy: true
+- sha: 86443c48c58885718f9444f4b60877f3c57f14b3
+  message: 'docs: clarify /health short-circuit in health check middleware'
+  is_culprit: false
+  is_decoy: true
+- sha: dd3d21804fca2a3fa3868d84b828158dc2218144
+  message: 'docs: expand browse view docstring with mode-dispatch details'
+  is_culprit: false
+  is_decoy: true
+culprit_sha: null
+injected_at: 20260704T040323
+first_signal_at: null
+decoy_config:
+  size: 3
+  position: n/a
+  seed: 1020
+  decoys:
+  - decoy-utils-docstring
+  - decoy-health-comment
+  - decoy-browse-docstring
+  traffic_5xx: 6
+fixture_paths:
+- fixtures/sentry/event_alert/20260704T040405967762-4fd014e5.json
+- fixtures/sentry/event_alert/20260704T040406782059-d9af4d5b.json
+- fixtures/sentry/issue/20260704T040405908657-2f5fa9dc.json
+- fixtures/sentry/issue/20260704T040406230674-9bcdb7f7.json
+log_paths:
+- fixtures/logs/20260704T040323-redis-down-w3-web.log

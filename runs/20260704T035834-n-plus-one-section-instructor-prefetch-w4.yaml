@@ -1,0 +1,39 @@
+run_id: 20260704T035834-n-plus-one-section-instructor-prefetch-w4
+fault_id: n-plus-one-section-instructor-prefetch
+fault_class: code
+ground_truth: culprit_commit
+base_sha: 172effabd7f7dc6ccee9f2b69540835eacf77bf0
+release_sha: 9328bcb76242cdab9fcd738fbbee31fc8a239ae4
+window:
+- sha: 07ed820605e659c5eb9eada8d7d930b77aca8ea1
+  message: 'docs: clarify pagination guard fallback behavior'
+  is_culprit: false
+  is_decoy: true
+- sha: bf8aa0299c18fa001b2e1ac0e5041f9190e7b2c0
+  message: 'courses: inline section lookup'
+  is_culprit: true
+  is_decoy: false
+- sha: fbe91d87211ac7aab133c278cedbe9e736aded0a
+  message: 'refactor: add return type hint to base context processor'
+  is_culprit: false
+  is_decoy: true
+- sha: 9328bcb76242cdab9fcd738fbbee31fc8a239ae4
+  message: 'docs: expand course_view docstring to describe redirect and instructor
+    annotation'
+  is_culprit: false
+  is_decoy: true
+culprit_sha: bf8aa0299c18fa001b2e1ac0e5041f9190e7b2c0
+injected_at: 20260704T035834
+first_signal_at: null
+decoy_config:
+  size: 4
+  position: middle
+  seed: 1012
+  decoys:
+  - decoy-pagination-comment
+  - decoy-context-processor-typehint
+  - decoy-course-docstring
+  traffic_5xx: 3
+fixture_paths: []
+log_paths:
+- fixtures/logs/20260704T035834-n-plus-one-section-instructor-prefetch-w4-web.log

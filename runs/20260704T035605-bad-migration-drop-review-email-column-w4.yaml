@@ -1,0 +1,39 @@
+run_id: 20260704T035605-bad-migration-drop-review-email-column-w4
+fault_id: bad-migration-drop-review-email-column
+fault_class: code
+ground_truth: culprit_commit
+base_sha: 172effabd7f7dc6ccee9f2b69540835eacf77bf0
+release_sha: 899579474fc2859af23c15fd20fe35b8a66b06b5
+window:
+- sha: b092bc93e9fddb5a275914ae46a639134f5cce97
+  message: 'docs: clarify /health short-circuit in health check middleware'
+  is_culprit: false
+  is_decoy: true
+- sha: c211216bab03aebb31157ebaa0ec72ec403a7bed
+  message: 'migrations: drop unused column'
+  is_culprit: true
+  is_decoy: false
+- sha: 22fffeb9601c8b53c4965372eb0d31498c98ae9b
+  message: 'docs: expand course_view docstring to describe redirect and instructor
+    annotation'
+  is_culprit: false
+  is_decoy: true
+- sha: 899579474fc2859af23c15fd20fe35b8a66b06b5
+  message: 'refactor: add return type hint to base context processor'
+  is_culprit: false
+  is_decoy: true
+culprit_sha: c211216bab03aebb31157ebaa0ec72ec403a7bed
+injected_at: 20260704T035605
+first_signal_at: null
+decoy_config:
+  size: 4
+  position: middle
+  seed: 1010
+  decoys:
+  - decoy-health-comment
+  - decoy-course-docstring
+  - decoy-context-processor-typehint
+  traffic_5xx: 0
+fixture_paths: []
+log_paths:
+- fixtures/logs/20260704T035605-bad-migration-drop-review-email-column-w4-web.log

@@ -1,0 +1,24 @@
+{
+  "received_at": "2026-07-04T03:58:54.220311+00:00",
+  "source": "sentry",
+  "resource": "issue",
+  "headers": {
+    "host": "gush-limelight-thing.ngrok-free.dev",
+    "user-agent": "sentry/26.7.0.dev0 (https://sentry.io)",
+    "content-length": "1834",
+    "accept": "*/*",
+    "accept-encoding": "gzip, deflate, br, zstd",
+    "baggage": "sentry-trace_id=1c81a8cb136f4c5f86f9e6b03769e25e,sentry-sample_rand=0.253947,sentry-environment=prod,sentry-release=backend%40a50754879f41ff58e05f206fc95417e7b08ea2ab,sentry-public_key=98443d956c9e40989a0139756c121c34,sentry-transaction=sentry.issues.tasks.post_process.post_process_group,sentry-sample_rate=1.0,sentry-sampled=true",
+    "content-type": "application/json",
+    "request-id": "4a32d89f6a214f4ea9a832d1ab92e3bc",
+    "sentry-hook-resource": "issue",
+    "sentry-hook-signature": "36aaa370d1a585774bd4e3bf71f93da78f5594453756a44d2dbe7a66777ce0e4",
+    "sentry-hook-timestamp": "1783137534",
+    "sentry-trace": "1c81a8cb136f4c5f86f9e6b03769e25e-a3f88dce16d2db0d-1",
+    "x-forwarded-for": "130.211.230.102",
+    "x-forwarded-host": "gush-limelight-thing.ngrok-free.dev",
+    "x-forwarded-proto": "https"
+  },
+  "raw_body": "{\"action\":\"created\",\"installation\":{\"uuid\":\"f1a179a6-83c5-4ee2-a3d8-b9768e388d3a\"},\"data\":{\"issue\":{\"url\":\"https://sentry.io/api/0/organizations/logan-bradley/issues/7593097498/\",\"web_url\":\"https://logan-bradley.sentry.io/issues/7593097498/\",\"project_url\":\"https://logan-bradley.sentry.io/issues/?project=4511674797326336\",\"id\":\"7593097498\",\"shareId\":null,\"shortId\":\"CULPRIT-TCF-D\",\"title\":\"NoReverseMatch: Reverse for 'course' with arguments '('', 1000)' not found. 1 pattern(s) tried: ['course/(?P<mnemonic>[^/]+)/(?P<course_number>[0-9]+)/\\\\\\\\Z']\",\"culprit\":\"/department/{dept_id}/\",\"permalink\":\"https://logan-bradley.sentry.io/issues/7593097498/\",\"logger\":null,\"level\":\"error\",\"status\":\"unresolved\",\"statusDetails\":{},\"substatus\":\"new\",\"isPublic\":false,\"platform\":\"python\",\"project\":{\"id\":\"4511674797326336\",\"name\":\"culprit-tcf\",\"slug\":\"culprit-tcf\",\"platform\":\"python-django\"},\"type\":\"error\",\"metadata\":{\"value\":\"Reverse for 'course' with arguments '('', 1000)' not found. 1 pattern(s) tried: ['course/(?P<mnemonic>[^/]+)/(?P<course_number>[0-9]+)/\\\\\\\\Z']\",\"type\":\"NoReverseMatch\",\"filename\":\"tcf_website/views/catalog/department.py\",\"function\":\"department\",\"in_app_frame_mix\":\"mixed\",\"sdk\":{\"name\":\"sentry.python.django\",\"name_normalized\":\"sentry.python\"},\"initial_priority\":75,\"title\":null},\"numComments\":0,\"assignedTo\":null,\"isBookmarked\":false,\"isSubscribed\":false,\"subscriptionDetails\":null,\"hasSeen\":false,\"annotations\":[],\"issueType\":\"error\",\"issueCategory\":\"error\",\"priority\":\"high\",\"priorityLockedAt\":null,\"seerFixabilityScore\":0.6018516421318054,\"seerAutofixLastTriggered\":null,\"seerExplorerAutofixLastTriggered\":null,\"isUnhandled\":true,\"count\":\"3\",\"userCount\":1,\"firstSeen\":\"2026-07-04T03:58:25.855126+00:00\",\"lastSeen\":\"2026-07-04T03:58:29.978612+00:00\"}},\"actor\":{\"type\":\"application\",\"id\":\"sentry\",\"name\":\"Sentry\"}}",
+  "scrubbed": true
+}

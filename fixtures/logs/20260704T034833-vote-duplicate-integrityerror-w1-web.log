@@ -1,0 +1,13 @@
+Starting Django Server with Gunicorn...
+[2026-07-04 03:48:49 +0000] [1] [INFO] Starting gunicorn 22.0.0
+[2026-07-04 03:48:49 +0000] [1] [INFO] Listening at: http://0.0.0.0:80 (1)
+[2026-07-04 03:48:49 +0000] [1] [INFO] Using worker: gthread
+[2026-07-04 03:48:49 +0000] [7] [INFO] Booting worker with pid: 7
+[2026-07-04 03:48:49 +0000] [8] [INFO] Booting worker with pid: 8
+[2026-07-04 03:48:49 +0000] [9] [INFO] Booting worker with pid: 9
+Forbidden (CSRF cookie not set.): /reviews/1/upvote/
+Forbidden (CSRF cookie not set.): /reviews/1/downvote/
+Forbidden (CSRF cookie not set.): /reviews/1/upvote/
+Forbidden (CSRF cookie not set.): /reviews/1/downvote/
+Forbidden (CSRF cookie not set.): /reviews/1/upvote/
+Forbidden (CSRF cookie not set.): /reviews/1/downvote/

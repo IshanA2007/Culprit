@@ -1,0 +1,526 @@
+Starting Django Server with Gunicorn...
+[2026-07-04 04:03:47 +0000] [1] [INFO] Starting gunicorn 22.0.0
+[2026-07-04 04:03:47 +0000] [1] [INFO] Listening at: http://0.0.0.0:80 (1)
+[2026-07-04 04:03:47 +0000] [1] [INFO] Using worker: gthread
+[2026-07-04 04:03:47 +0000] [7] [INFO] Booting worker with pid: 7
+[2026-07-04 04:03:47 +0000] [8] [INFO] Booting worker with pid: 8
+[2026-07-04 04:03:47 +0000] [9] [INFO] Booting worker with pid: 9
+{"level": "ERROR", "path": "/course/1/4019/", "method": "GET", "ip": "192.168.65.1", "user_agent": "python-httpx/0.28.1", "exception": "ConnectionError", "message": "Error -2 connecting to culprit_redis:6379. Name or service not known.", "traceback": "Traceback (most recent call last):\n  File \"/opt/venv/lib/python3.12/site-packages/redis/connection.py\", line 1003, in connect_check_health\n    sock = self._connect()\n           ^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/redis/connection.py\", line 1479, in _connect\n    for res in socket.getaddrinfo(\n               ^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/socket.py\", line 978, in getaddrinfo\n    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsocket.gaierror: [Errno -2] Name or service not known\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/opt/venv/lib/python3.12/site-packages/django/core/handlers/base.py\", line 197, in _get_response\n    response = wrapped_callback(request, *callback_args, **callback_kwargs)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/sentry_sdk/integrations/django/views.py\", line 108, in sentry_wrapped_callback\n    return callback(request, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/tcf_website/views/courses/course_instructor.py\", line 152, in course_instructor\n    section_last_taught, course, instructor = _fetch_pair_section_anchor(\n                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/tcf_website/views/courses/course_instructor.py\", line 37, in _fetch_pair_section_anchor\n    .first()\n     ^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/django/db/models/query.py\", line 1059, in first\n    for obj in queryset[:1]:\n               ~~~~~~~~^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/django/db/models/query.py\", line 400, in __iter__\n    self._fetch_all()\n  File \"/opt/venv/lib/python3.12/site-packages/django/db/models/query.py\", line 1886, in _fetch_all\n    self._result_cache = list(self._iterable_class(self))\n                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/django/db/models/query.py\", line 93, in __iter__\n    results = compiler.execute_sql(\n              ^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/cachalot/monkey_patch.py\", line 38, in inner\n    return original(compiler, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/cachalot/monkey_patch.py\", line 101, in inner\n    return _get_result_or_execute_query(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/cachalot/monkey_patch.py\", line 47, in _get_result_or_execute_query\n    data = cache.get_many(table_cache_keys + [cache_key])\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/django/core/cache/backends/redis.py\", line 205, in get_many\n    ret = self._cache.get_many(key_map.keys())\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/django/core/cache/backends/redis.py\", line 123, in get_many\n    ret = client.mget(keys)\n          ^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/redis/commands/core.py\", line 2241, in mget\n    return self.execute_command(\"MGET\", *args, **options)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/sentry_sdk/integrations/redis/_sync_common.py\", line 166, in sentry_patched_execute_command\n    value = old_execute_command(self, name, *args, **kwargs)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/redis/client.py\", line 716, in execute_command\n    return self._execute_command(*args, **options)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/redis/client.py\", line 722, in _execute_command\n    conn = self.connection or pool.get_connection()\n                              ^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/redis/utils.py\", line 236, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/redis/connection.py\", line 3041, in get_connection\n    connection.connect()\n  File \"/opt/venv/lib/python3.12/site-packages/redis/connection.py\", line 976, in connect\n    self.retry.call_with_retry(\n  File \"/opt/venv/lib/python3.12/site-packages/redis/retry.py\", line 132, in call_with_retry\n    raise error\n  File \"/opt/venv/lib/python3.12/site-packages/redis/retry.py\", line 120, in call_with_retry\n    return do()\n           ^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/redis/connection.py\", line 977, in <lambda>\n    lambda: self.connect_check_health(\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/redis/connection.py\", line 1025, in connect_check_health\n    raise e\nredis.exceptions.ConnectionError: Error -2 connecting to culprit_redis:6379. Name or service not known.\n"}
+Internal Server Error: /course/1/4019/
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 1003, in connect_check_health
+    sock = self._connect()
+           ^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 1479, in _connect
+    for res in socket.getaddrinfo(
+               ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/socket.py", line 978, in getaddrinfo
+    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+socket.gaierror: [Errno -2] Name or service not known
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/sentry_sdk/integrations/django/views.py", line 108, in sentry_wrapped_callback
+    return callback(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/tcf_website/views/courses/course_instructor.py", line 152, in course_instructor
+    section_last_taught, course, instructor = _fetch_pair_section_anchor(
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/tcf_website/views/courses/course_instructor.py", line 37, in _fetch_pair_section_anchor
+    .first()
+     ^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/django/db/models/query.py", line 1059, in first
+    for obj in queryset[:1]:
+               ~~~~~~~~^^^^
+  File "/opt/venv/lib/python3.12/site-packages/django/db/models/query.py", line 400, in __iter__
+    self._fetch_all()
+  File "/opt/venv/lib/python3.12/site-packages/django/db/models/query.py", line 1886, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/django/db/models/query.py", line 93, in __iter__
+    results = compiler.execute_sql(
+              ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/cachalot/monkey_patch.py", line 38, in inner
+    return original(compiler, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/cachalot/monkey_patch.py", line 101, in inner
+    return _get_result_or_execute_query(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/cachalot/monkey_patch.py", line 47, in _get_result_or_execute_query
+    data = cache.get_many(table_cache_keys + [cache_key])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/django/core/cache/backends/redis.py", line 205, in get_many
+    ret = self._cache.get_many(key_map.keys())
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/django/core/cache/backends/redis.py", line 123, in get_many
+    ret = client.mget(keys)
+          ^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/commands/core.py", line 2241, in mget
+    return self.execute_command("MGET", *args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/sentry_sdk/integrations/redis/_sync_common.py", line 166, in sentry_patched_execute_command
+    value = old_execute_command(self, name, *args, **kwargs)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 716, in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 722, in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/utils.py", line 236, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 3041, in get_connection
+    connection.connect()
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 976, in connect
+    self.retry.call_with_retry(
+  File "/opt/venv/lib/python3.12/site-packages/redis/retry.py", line 132, in call_with_retry
+    raise error
+  File "/opt/venv/lib/python3.12/site-packages/redis/retry.py", line 120, in call_with_retry
+    return do()
+           ^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 977, in <lambda>
+    lambda: self.connect_check_health(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 1025, in connect_check_health
+    raise e
+redis.exceptions.ConnectionError: Error -2 connecting to culprit_redis:6379. Name or service not known.
+{"level": "ERROR", "path": "/search/?q=algorithms", "method": "GET", "ip": "192.168.65.1", "user_agent": "python-httpx/0.28.1", "exception": "ConnectionError", "message": "Error -2 connecting to culprit_redis:6379. Name or service not known.", "traceback": "Traceback (most recent call last):\n  File \"/opt/venv/lib/python3.12/site-packages/redis/connection.py\", line 1003, in connect_check_health\n    sock = self._connect()\n           ^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/redis/connection.py\", line 1479, in _connect\n    for res in socket.getaddrinfo(\n               ^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/socket.py\", line 978, in getaddrinfo\n    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsocket.gaierror: [Errno -2] Name or service not known\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/opt/venv/lib/python3.12/site-packages/django/core/handlers/base.py\", line 197, in _get_response\n    response = wrapped_callback(request, *callback_args, **callback_kwargs)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/sentry_sdk/integrations/django/views.py\", line 108, in sentry_wrapped_callback\n    return callback(request, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/tcf_website/views/catalog/search.py\", line 227, in search\n    instructors = fetch_instructors(query)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/tcf_website/views/catalog/search.py\", line 90, in fetch_instructors\n    return [{key: getattr(instructor, key) for key in keys} for instructor in results]\n                                                                              ^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/django/db/models/query.py\", line 400, in __iter__\n    self._fetch_all()\n  File \"/opt/venv/lib/python3.12/site-packages/django/db/models/query.py\", line 1886, in _fetch_all\n    self._result_cache = list(self._iterable_class(self))\n                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/django/db/models/query.py\", line 93, in __iter__\n    results = compiler.execute_sql(\n              ^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/cachalot/monkey_patch.py\", line 38, in inner\n    return original(compiler, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/cachalot/monkey_patch.py\", line 101, in inner\n    return _get_result_or_execute_query(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/cachalot/monkey_patch.py\", line 47, in _get_result_or_execute_query\n    data = cache.get_many(table_cache_keys + [cache_key])\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/django/core/cache/backends/redis.py\", line 205, in get_many\n    ret = self._cache.get_many(key_map.keys())\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/django/core/cache/backends/redis.py\", line 123, in get_many\n    ret = client.mget(keys)\n          ^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/redis/commands/core.py\", line 2241, in mget\n    return self.execute_command(\"MGET\", *args, **options)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/sentry_sdk/integrations/redis/_sync_common.py\", line 166, in sentry_patched_execute_command\n    value = old_execute_command(self, name, *args, **kwargs)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/redis/client.py\", line 716, in execute_command\n    return self._execute_command(*args, **options)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/redis/client.py\", line 722, in _execute_command\n    conn = self.connection or pool.get_connection()\n                              ^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/redis/utils.py\", line 236, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/redis/connection.py\", line 3041, in get_connection\n    connection.connect()\n  File \"/opt/venv/lib/python3.12/site-packages/redis/connection.py\", line 976, in connect\n    self.retry.call_with_retry(\n  File \"/opt/venv/lib/python3.12/site-packages/redis/retry.py\", line 132, in call_with_retry\n    raise error\n  File \"/opt/venv/lib/python3.12/site-packages/redis/retry.py\", line 120, in call_with_retry\n    return do()\n           ^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/redis/connection.py\", line 977, in <lambda>\n    lambda: self.connect_check_health(\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/redis/connection.py\", line 1025, in connect_check_health\n    raise e\nredis.exceptions.ConnectionError: Error -2 connecting to culprit_redis:6379. Name or service not known.\n"}
+Internal Server Error: /search/
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 1003, in connect_check_health
+    sock = self._connect()
+           ^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 1479, in _connect
+    for res in socket.getaddrinfo(
+               ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/socket.py", line 978, in getaddrinfo
+    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+socket.gaierror: [Errno -2] Name or service not known
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/sentry_sdk/integrations/django/views.py", line 108, in sentry_wrapped_callback
+    return callback(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/tcf_website/views/catalog/search.py", line 227, in search
+    instructors = fetch_instructors(query)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/tcf_website/views/catalog/search.py", line 90, in fetch_instructors
+    return [{key: getattr(instructor, key) for key in keys} for instructor in results]
+                                                                              ^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/django/db/models/query.py", line 400, in __iter__
+    self._fetch_all()
+  File "/opt/venv/lib/python3.12/site-packages/django/db/models/query.py", line 1886, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/django/db/models/query.py", line 93, in __iter__
+    results = compiler.execute_sql(
+              ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/cachalot/monkey_patch.py", line 38, in inner
+    return original(compiler, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/cachalot/monkey_patch.py", line 101, in inner
+    return _get_result_or_execute_query(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/cachalot/monkey_patch.py", line 47, in _get_result_or_execute_query
+    data = cache.get_many(table_cache_keys + [cache_key])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/django/core/cache/backends/redis.py", line 205, in get_many
+    ret = self._cache.get_many(key_map.keys())
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/django/core/cache/backends/redis.py", line 123, in get_many
+    ret = client.mget(keys)
+          ^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/commands/core.py", line 2241, in mget
+    return self.execute_command("MGET", *args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/sentry_sdk/integrations/redis/_sync_common.py", line 166, in sentry_patched_execute_command
+    value = old_execute_command(self, name, *args, **kwargs)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 716, in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 722, in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/utils.py", line 236, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 3041, in get_connection
+    connection.connect()
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 976, in connect
+    self.retry.call_with_retry(
+  File "/opt/venv/lib/python3.12/site-packages/redis/retry.py", line 132, in call_with_retry
+    raise error
+  File "/opt/venv/lib/python3.12/site-packages/redis/retry.py", line 120, in call_with_retry
+    return do()
+           ^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 977, in <lambda>
+    lambda: self.connect_check_health(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 1025, in connect_check_health
+    raise e
+redis.exceptions.ConnectionError: Error -2 connecting to culprit_redis:6379. Name or service not known.
+{"level": "ERROR", "path": "/course/1/4019/", "method": "GET", "ip": "192.168.65.1", "user_agent": "python-httpx/0.28.1", "exception": "ConnectionError", "message": "Error -2 connecting to culprit_redis:6379. Name or service not known.", "traceback": "Traceback (most recent call last):\n  File \"/opt/venv/lib/python3.12/site-packages/redis/connection.py\", line 1003, in connect_check_health\n    sock = self._connect()\n           ^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/redis/connection.py\", line 1479, in _connect\n    for res in socket.getaddrinfo(\n               ^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/socket.py\", line 978, in getaddrinfo\n    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsocket.gaierror: [Errno -2] Name or service not known\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/opt/venv/lib/python3.12/site-packages/django/core/handlers/base.py\", line 197, in _get_response\n    response = wrapped_callback(request, *callback_args, **callback_kwargs)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/sentry_sdk/integrations/django/views.py\", line 108, in sentry_wrapped_callback\n    return callback(request, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/tcf_website/views/courses/course_instructor.py\", line 152, in course_instructor\n    section_last_taught, course, instructor = _fetch_pair_section_anchor(\n                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/tcf_website/views/courses/course_instructor.py\", line 37, in _fetch_pair_section_anchor\n    .first()\n     ^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/django/db/models/query.py\", line 1059, in first\n    for obj in queryset[:1]:\n               ~~~~~~~~^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/django/db/models/query.py\", line 400, in __iter__\n    self._fetch_all()\n  File \"/opt/venv/lib/python3.12/site-packages/django/db/models/query.py\", line 1886, in _fetch_all\n    self._result_cache = list(self._iterable_class(self))\n                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/django/db/models/query.py\", line 93, in __iter__\n    results = compiler.execute_sql(\n              ^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/cachalot/monkey_patch.py\", line 38, in inner\n    return original(compiler, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/cachalot/monkey_patch.py\", line 101, in inner\n    return _get_result_or_execute_query(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/cachalot/monkey_patch.py\", line 47, in _get_result_or_execute_query\n    data = cache.get_many(table_cache_keys + [cache_key])\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/django/core/cache/backends/redis.py\", line 205, in get_many\n    ret = self._cache.get_many(key_map.keys())\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/django/core/cache/backends/redis.py\", line 123, in get_many\n    ret = client.mget(keys)\n          ^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/redis/commands/core.py\", line 2241, in mget\n    return self.execute_command(\"MGET\", *args, **options)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/sentry_sdk/integrations/redis/_sync_common.py\", line 166, in sentry_patched_execute_command\n    value = old_execute_command(self, name, *args, **kwargs)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/redis/client.py\", line 716, in execute_command\n    return self._execute_command(*args, **options)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/redis/client.py\", line 722, in _execute_command\n    conn = self.connection or pool.get_connection()\n                              ^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/redis/utils.py\", line 236, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/redis/connection.py\", line 3041, in get_connection\n    connection.connect()\n  File \"/opt/venv/lib/python3.12/site-packages/redis/connection.py\", line 976, in connect\n    self.retry.call_with_retry(\n  File \"/opt/venv/lib/python3.12/site-packages/redis/retry.py\", line 132, in call_with_retry\n    raise error\n  File \"/opt/venv/lib/python3.12/site-packages/redis/retry.py\", line 120, in call_with_retry\n    return do()\n           ^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/redis/connection.py\", line 977, in <lambda>\n    lambda: self.connect_check_health(\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/redis/connection.py\", line 1025, in connect_check_health\n    raise e\nredis.exceptions.ConnectionError: Error -2 connecting to culprit_redis:6379. Name or service not known.\n"}
+Internal Server Error: /course/1/4019/
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 1003, in connect_check_health
+    sock = self._connect()
+           ^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 1479, in _connect
+    for res in socket.getaddrinfo(
+               ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/socket.py", line 978, in getaddrinfo
+    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+socket.gaierror: [Errno -2] Name or service not known
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/sentry_sdk/integrations/django/views.py", line 108, in sentry_wrapped_callback
+    return callback(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/tcf_website/views/courses/course_instructor.py", line 152, in course_instructor
+    section_last_taught, course, instructor = _fetch_pair_section_anchor(
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/tcf_website/views/courses/course_instructor.py", line 37, in _fetch_pair_section_anchor
+    .first()
+     ^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/django/db/models/query.py", line 1059, in first
+    for obj in queryset[:1]:
+               ~~~~~~~~^^^^
+  File "/opt/venv/lib/python3.12/site-packages/django/db/models/query.py", line 400, in __iter__
+    self._fetch_all()
+  File "/opt/venv/lib/python3.12/site-packages/django/db/models/query.py", line 1886, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/django/db/models/query.py", line 93, in __iter__
+    results = compiler.execute_sql(
+              ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/cachalot/monkey_patch.py", line 38, in inner
+    return original(compiler, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/cachalot/monkey_patch.py", line 101, in inner
+    return _get_result_or_execute_query(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/cachalot/monkey_patch.py", line 47, in _get_result_or_execute_query
+    data = cache.get_many(table_cache_keys + [cache_key])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/django/core/cache/backends/redis.py", line 205, in get_many
+    ret = self._cache.get_many(key_map.keys())
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/django/core/cache/backends/redis.py", line 123, in get_many
+    ret = client.mget(keys)
+          ^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/commands/core.py", line 2241, in mget
+    return self.execute_command("MGET", *args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/sentry_sdk/integrations/redis/_sync_common.py", line 166, in sentry_patched_execute_command
+    value = old_execute_command(self, name, *args, **kwargs)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 716, in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 722, in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/utils.py", line 236, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 3041, in get_connection
+    connection.connect()
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 976, in connect
+    self.retry.call_with_retry(
+  File "/opt/venv/lib/python3.12/site-packages/redis/retry.py", line 132, in call_with_retry
+    raise error
+  File "/opt/venv/lib/python3.12/site-packages/redis/retry.py", line 120, in call_with_retry
+    return do()
+           ^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 977, in <lambda>
+    lambda: self.connect_check_health(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 1025, in connect_check_health
+    raise e
+redis.exceptions.ConnectionError: Error -2 connecting to culprit_redis:6379. Name or service not known.
+{"level": "ERROR", "path": "/search/?q=algorithms", "method": "GET", "ip": "192.168.65.1", "user_agent": "python-httpx/0.28.1", "exception": "ConnectionError", "message": "Error -2 connecting to culprit_redis:6379. Name or service not known.", "traceback": "Traceback (most recent call last):\n  File \"/opt/venv/lib/python3.12/site-packages/redis/connection.py\", line 1003, in connect_check_health\n    sock = self._connect()\n           ^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/redis/connection.py\", line 1479, in _connect\n    for res in socket.getaddrinfo(\n               ^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/socket.py\", line 978, in getaddrinfo\n    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsocket.gaierror: [Errno -2] Name or service not known\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/opt/venv/lib/python3.12/site-packages/django/core/handlers/base.py\", line 197, in _get_response\n    response = wrapped_callback(request, *callback_args, **callback_kwargs)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/sentry_sdk/integrations/django/views.py\", line 108, in sentry_wrapped_callback\n    return callback(request, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/tcf_website/views/catalog/search.py\", line 227, in search\n    instructors = fetch_instructors(query)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/tcf_website/views/catalog/search.py\", line 90, in fetch_instructors\n    return [{key: getattr(instructor, key) for key in keys} for instructor in results]\n                                                                              ^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/django/db/models/query.py\", line 400, in __iter__\n    self._fetch_all()\n  File \"/opt/venv/lib/python3.12/site-packages/django/db/models/query.py\", line 1886, in _fetch_all\n    self._result_cache = list(self._iterable_class(self))\n                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/django/db/models/query.py\", line 93, in __iter__\n    results = compiler.execute_sql(\n              ^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/cachalot/monkey_patch.py\", line 38, in inner\n    return original(compiler, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/cachalot/monkey_patch.py\", line 101, in inner\n    return _get_result_or_execute_query(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/cachalot/monkey_patch.py\", line 47, in _get_result_or_execute_query\n    data = cache.get_many(table_cache_keys + [cache_key])\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/django/core/cache/backends/redis.py\", line 205, in get_many\n    ret = self._cache.get_many(key_map.keys())\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/django/core/cache/backends/redis.py\", line 123, in get_many\n    ret = client.mget(keys)\n          ^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/redis/commands/core.py\", line 2241, in mget\n    return self.execute_command(\"MGET\", *args, **options)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/sentry_sdk/integrations/redis/_sync_common.py\", line 166, in sentry_patched_execute_command\n    value = old_execute_command(self, name, *args, **kwargs)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/redis/client.py\", line 716, in execute_command\n    return self._execute_command(*args, **options)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/redis/client.py\", line 722, in _execute_command\n    conn = self.connection or pool.get_connection()\n                              ^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/redis/utils.py\", line 236, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/redis/connection.py\", line 3041, in get_connection\n    connection.connect()\n  File \"/opt/venv/lib/python3.12/site-packages/redis/connection.py\", line 976, in connect\n    self.retry.call_with_retry(\n  File \"/opt/venv/lib/python3.12/site-packages/redis/retry.py\", line 132, in call_with_retry\n    raise error\n  File \"/opt/venv/lib/python3.12/site-packages/redis/retry.py\", line 120, in call_with_retry\n    return do()\n           ^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/redis/connection.py\", line 977, in <lambda>\n    lambda: self.connect_check_health(\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/redis/connection.py\", line 1025, in connect_check_health\n    raise e\nredis.exceptions.ConnectionError: Error -2 connecting to culprit_redis:6379. Name or service not known.\n"}
+Internal Server Error: /search/
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 1003, in connect_check_health
+    sock = self._connect()
+           ^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 1479, in _connect
+    for res in socket.getaddrinfo(
+               ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/socket.py", line 978, in getaddrinfo
+    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+socket.gaierror: [Errno -2] Name or service not known
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/sentry_sdk/integrations/django/views.py", line 108, in sentry_wrapped_callback
+    return callback(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/tcf_website/views/catalog/search.py", line 227, in search
+    instructors = fetch_instructors(query)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/tcf_website/views/catalog/search.py", line 90, in fetch_instructors
+    return [{key: getattr(instructor, key) for key in keys} for instructor in results]
+                                                                              ^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/django/db/models/query.py", line 400, in __iter__
+    self._fetch_all()
+  File "/opt/venv/lib/python3.12/site-packages/django/db/models/query.py", line 1886, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/django/db/models/query.py", line 93, in __iter__
+    results = compiler.execute_sql(
+              ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/cachalot/monkey_patch.py", line 38, in inner
+    return original(compiler, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/cachalot/monkey_patch.py", line 101, in inner
+    return _get_result_or_execute_query(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/cachalot/monkey_patch.py", line 47, in _get_result_or_execute_query
+    data = cache.get_many(table_cache_keys + [cache_key])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/django/core/cache/backends/redis.py", line 205, in get_many
+    ret = self._cache.get_many(key_map.keys())
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/django/core/cache/backends/redis.py", line 123, in get_many
+    ret = client.mget(keys)
+          ^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/commands/core.py", line 2241, in mget
+    return self.execute_command("MGET", *args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/sentry_sdk/integrations/redis/_sync_common.py", line 166, in sentry_patched_execute_command
+    value = old_execute_command(self, name, *args, **kwargs)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 716, in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 722, in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/utils.py", line 236, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 3041, in get_connection
+    connection.connect()
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 976, in connect
+    self.retry.call_with_retry(
+  File "/opt/venv/lib/python3.12/site-packages/redis/retry.py", line 132, in call_with_retry
+    raise error
+  File "/opt/venv/lib/python3.12/site-packages/redis/retry.py", line 120, in call_with_retry
+    return do()
+           ^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 977, in <lambda>
+    lambda: self.connect_check_health(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 1025, in connect_check_health
+    raise e
+redis.exceptions.ConnectionError: Error -2 connecting to culprit_redis:6379. Name or service not known.
+{"level": "ERROR", "path": "/course/1/4019/", "method": "GET", "ip": "192.168.65.1", "user_agent": "python-httpx/0.28.1", "exception": "ConnectionError", "message": "Error -2 connecting to culprit_redis:6379. Name or service not known.", "traceback": "Traceback (most recent call last):\n  File \"/opt/venv/lib/python3.12/site-packages/redis/connection.py\", line 1003, in connect_check_health\n    sock = self._connect()\n           ^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/redis/connection.py\", line 1479, in _connect\n    for res in socket.getaddrinfo(\n               ^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/socket.py\", line 978, in getaddrinfo\n    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsocket.gaierror: [Errno -2] Name or service not known\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/opt/venv/lib/python3.12/site-packages/django/core/handlers/base.py\", line 197, in _get_response\n    response = wrapped_callback(request, *callback_args, **callback_kwargs)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/sentry_sdk/integrations/django/views.py\", line 108, in sentry_wrapped_callback\n    return callback(request, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/tcf_website/views/courses/course_instructor.py\", line 152, in course_instructor\n    section_last_taught, course, instructor = _fetch_pair_section_anchor(\n                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/tcf_website/views/courses/course_instructor.py\", line 37, in _fetch_pair_section_anchor\n    .first()\n     ^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/django/db/models/query.py\", line 1059, in first\n    for obj in queryset[:1]:\n               ~~~~~~~~^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/django/db/models/query.py\", line 400, in __iter__\n    self._fetch_all()\n  File \"/opt/venv/lib/python3.12/site-packages/django/db/models/query.py\", line 1886, in _fetch_all\n    self._result_cache = list(self._iterable_class(self))\n                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/django/db/models/query.py\", line 93, in __iter__\n    results = compiler.execute_sql(\n              ^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/cachalot/monkey_patch.py\", line 38, in inner\n    return original(compiler, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/cachalot/monkey_patch.py\", line 101, in inner\n    return _get_result_or_execute_query(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/cachalot/monkey_patch.py\", line 47, in _get_result_or_execute_query\n    data = cache.get_many(table_cache_keys + [cache_key])\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/django/core/cache/backends/redis.py\", line 205, in get_many\n    ret = self._cache.get_many(key_map.keys())\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/django/core/cache/backends/redis.py\", line 123, in get_many\n    ret = client.mget(keys)\n          ^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/redis/commands/core.py\", line 2241, in mget\n    return self.execute_command(\"MGET\", *args, **options)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/sentry_sdk/integrations/redis/_sync_common.py\", line 166, in sentry_patched_execute_command\n    value = old_execute_command(self, name, *args, **kwargs)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/redis/client.py\", line 716, in execute_command\n    return self._execute_command(*args, **options)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/redis/client.py\", line 722, in _execute_command\n    conn = self.connection or pool.get_connection()\n                              ^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/redis/utils.py\", line 236, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/redis/connection.py\", line 3041, in get_connection\n    connection.connect()\n  File \"/opt/venv/lib/python3.12/site-packages/redis/connection.py\", line 976, in connect\n    self.retry.call_with_retry(\n  File \"/opt/venv/lib/python3.12/site-packages/redis/retry.py\", line 132, in call_with_retry\n    raise error\n  File \"/opt/venv/lib/python3.12/site-packages/redis/retry.py\", line 120, in call_with_retry\n    return do()\n           ^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/redis/connection.py\", line 977, in <lambda>\n    lambda: self.connect_check_health(\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/redis/connection.py\", line 1025, in connect_check_health\n    raise e\nredis.exceptions.ConnectionError: Error -2 connecting to culprit_redis:6379. Name or service not known.\n"}
+Internal Server Error: /course/1/4019/
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 1003, in connect_check_health
+    sock = self._connect()
+           ^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 1479, in _connect
+    for res in socket.getaddrinfo(
+               ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/socket.py", line 978, in getaddrinfo
+    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+socket.gaierror: [Errno -2] Name or service not known
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/sentry_sdk/integrations/django/views.py", line 108, in sentry_wrapped_callback
+    return callback(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/tcf_website/views/courses/course_instructor.py", line 152, in course_instructor
+    section_last_taught, course, instructor = _fetch_pair_section_anchor(
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/tcf_website/views/courses/course_instructor.py", line 37, in _fetch_pair_section_anchor
+    .first()
+     ^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/django/db/models/query.py", line 1059, in first
+    for obj in queryset[:1]:
+               ~~~~~~~~^^^^
+  File "/opt/venv/lib/python3.12/site-packages/django/db/models/query.py", line 400, in __iter__
+    self._fetch_all()
+  File "/opt/venv/lib/python3.12/site-packages/django/db/models/query.py", line 1886, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/django/db/models/query.py", line 93, in __iter__
+    results = compiler.execute_sql(
+              ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/cachalot/monkey_patch.py", line 38, in inner
+    return original(compiler, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/cachalot/monkey_patch.py", line 101, in inner
+    return _get_result_or_execute_query(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/cachalot/monkey_patch.py", line 47, in _get_result_or_execute_query
+    data = cache.get_many(table_cache_keys + [cache_key])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/django/core/cache/backends/redis.py", line 205, in get_many
+    ret = self._cache.get_many(key_map.keys())
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/django/core/cache/backends/redis.py", line 123, in get_many
+    ret = client.mget(keys)
+          ^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/commands/core.py", line 2241, in mget
+    return self.execute_command("MGET", *args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/sentry_sdk/integrations/redis/_sync_common.py", line 166, in sentry_patched_execute_command
+    value = old_execute_command(self, name, *args, **kwargs)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 716, in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 722, in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/utils.py", line 236, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 3041, in get_connection
+    connection.connect()
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 976, in connect
+    self.retry.call_with_retry(
+  File "/opt/venv/lib/python3.12/site-packages/redis/retry.py", line 132, in call_with_retry
+    raise error
+  File "/opt/venv/lib/python3.12/site-packages/redis/retry.py", line 120, in call_with_retry
+    return do()
+           ^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 977, in <lambda>
+    lambda: self.connect_check_health(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 1025, in connect_check_health
+    raise e
+redis.exceptions.ConnectionError: Error -2 connecting to culprit_redis:6379. Name or service not known.
+{"level": "ERROR", "path": "/search/?q=algorithms", "method": "GET", "ip": "192.168.65.1", "user_agent": "python-httpx/0.28.1", "exception": "ConnectionError", "message": "Error -2 connecting to culprit_redis:6379. Name or service not known.", "traceback": "Traceback (most recent call last):\n  File \"/opt/venv/lib/python3.12/site-packages/redis/connection.py\", line 1003, in connect_check_health\n    sock = self._connect()\n           ^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/redis/connection.py\", line 1479, in _connect\n    for res in socket.getaddrinfo(\n               ^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/socket.py\", line 978, in getaddrinfo\n    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsocket.gaierror: [Errno -2] Name or service not known\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/opt/venv/lib/python3.12/site-packages/django/core/handlers/base.py\", line 197, in _get_response\n    response = wrapped_callback(request, *callback_args, **callback_kwargs)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/sentry_sdk/integrations/django/views.py\", line 108, in sentry_wrapped_callback\n    return callback(request, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/tcf_website/views/catalog/search.py\", line 227, in search\n    instructors = fetch_instructors(query)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/tcf_website/views/catalog/search.py\", line 90, in fetch_instructors\n    return [{key: getattr(instructor, key) for key in keys} for instructor in results]\n                                                                              ^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/django/db/models/query.py\", line 400, in __iter__\n    self._fetch_all()\n  File \"/opt/venv/lib/python3.12/site-packages/django/db/models/query.py\", line 1886, in _fetch_all\n    self._result_cache = list(self._iterable_class(self))\n                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/django/db/models/query.py\", line 93, in __iter__\n    results = compiler.execute_sql(\n              ^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/cachalot/monkey_patch.py\", line 38, in inner\n    return original(compiler, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/cachalot/monkey_patch.py\", line 101, in inner\n    return _get_result_or_execute_query(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/cachalot/monkey_patch.py\", line 47, in _get_result_or_execute_query\n    data = cache.get_many(table_cache_keys + [cache_key])\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/django/core/cache/backends/redis.py\", line 205, in get_many\n    ret = self._cache.get_many(key_map.keys())\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/django/core/cache/backends/redis.py\", line 123, in get_many\n    ret = client.mget(keys)\n          ^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/redis/commands/core.py\", line 2241, in mget\n    return self.execute_command(\"MGET\", *args, **options)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/sentry_sdk/integrations/redis/_sync_common.py\", line 166, in sentry_patched_execute_command\n    value = old_execute_command(self, name, *args, **kwargs)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/redis/client.py\", line 716, in execute_command\n    return self._execute_command(*args, **options)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/redis/client.py\", line 722, in _execute_command\n    conn = self.connection or pool.get_connection()\n                              ^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/redis/utils.py\", line 236, in wrapper\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/redis/connection.py\", line 3041, in get_connection\n    connection.connect()\n  File \"/opt/venv/lib/python3.12/site-packages/redis/connection.py\", line 976, in connect\n    self.retry.call_with_retry(\n  File \"/opt/venv/lib/python3.12/site-packages/redis/retry.py\", line 132, in call_with_retry\n    raise error\n  File \"/opt/venv/lib/python3.12/site-packages/redis/retry.py\", line 120, in call_with_retry\n    return do()\n           ^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/redis/connection.py\", line 977, in <lambda>\n    lambda: self.connect_check_health(\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/redis/connection.py\", line 1025, in connect_check_health\n    raise e\nredis.exceptions.ConnectionError: Error -2 connecting to culprit_redis:6379. Name or service not known.\n"}
+Internal Server Error: /search/
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 1003, in connect_check_health
+    sock = self._connect()
+           ^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 1479, in _connect
+    for res in socket.getaddrinfo(
+               ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/socket.py", line 978, in getaddrinfo
+    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+socket.gaierror: [Errno -2] Name or service not known
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/sentry_sdk/integrations/django/views.py", line 108, in sentry_wrapped_callback
+    return callback(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/tcf_website/views/catalog/search.py", line 227, in search
+    instructors = fetch_instructors(query)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/tcf_website/views/catalog/search.py", line 90, in fetch_instructors
+    return [{key: getattr(instructor, key) for key in keys} for instructor in results]
+                                                                              ^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/django/db/models/query.py", line 400, in __iter__
+    self._fetch_all()
+  File "/opt/venv/lib/python3.12/site-packages/django/db/models/query.py", line 1886, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/django/db/models/query.py", line 93, in __iter__
+    results = compiler.execute_sql(
+              ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/cachalot/monkey_patch.py", line 38, in inner
+    return original(compiler, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/cachalot/monkey_patch.py", line 101, in inner
+    return _get_result_or_execute_query(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/cachalot/monkey_patch.py", line 47, in _get_result_or_execute_query
+    data = cache.get_many(table_cache_keys + [cache_key])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/django/core/cache/backends/redis.py", line 205, in get_many
+    ret = self._cache.get_many(key_map.keys())
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/django/core/cache/backends/redis.py", line 123, in get_many
+    ret = client.mget(keys)
+          ^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/commands/core.py", line 2241, in mget
+    return self.execute_command("MGET", *args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/sentry_sdk/integrations/redis/_sync_common.py", line 166, in sentry_patched_execute_command
+    value = old_execute_command(self, name, *args, **kwargs)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 716, in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/client.py", line 722, in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/utils.py", line 236, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 3041, in get_connection
+    connection.connect()
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 976, in connect
+    self.retry.call_with_retry(
+  File "/opt/venv/lib/python3.12/site-packages/redis/retry.py", line 132, in call_with_retry
+    raise error
+  File "/opt/venv/lib/python3.12/site-packages/redis/retry.py", line 120, in call_with_retry
+    return do()
+           ^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 977, in <lambda>
+    lambda: self.connect_check_health(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/redis/connection.py", line 1025, in connect_check_health
+    raise e
+redis.exceptions.ConnectionError: Error -2 connecting to culprit_redis:6379. Name or service not known.
