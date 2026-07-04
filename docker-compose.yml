@@ -1,0 +1,24 @@
+# Local Postgres for the Culprit service (Milestone 2).
+# Mirrors theCourseForum2's Postgres major (17) so behaviour matches their prod.
+# The harness profile (docker-compose.harness.yml) is separate; this file only
+# runs the service's database. Bring it up with:  docker compose up -d db
+services:
+  db:
+    image: postgres:17
+    container_name: culprit_m2_db
+    environment:
+      POSTGRES_USER: culprit
+      POSTGRES_PASSWORD: culprit
+      POSTGRES_DB: culprit
+    ports:
+      - "5432:5432"
+    volumes:
+      - culprit_m2_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U culprit -d culprit"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  culprit_m2_pgdata:
