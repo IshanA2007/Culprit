@@ -115,3 +115,26 @@ async def test_selector_picks_redis_runbook_for_a_redis_down_incident():
     llm = LLM(api_key=API_KEY)
     rid = await llm.select_runbook(context=_REDIS_DOWN_CONTEXT, corpus=RUNBOOKS)
     assert rid == "redis-elasticache-down"
+
+
+_PM_FACTS = {
+    "title": "FieldError: cannot resolve keyword 'x'",
+    "culprit": "abcd1234",
+    "confidence": "high",
+    "impact": "~128 failed requests over 12 min; ≈37 users (est.)",
+    "fixing_commit": "ffffffff",
+    "resolution_source": "manual",
+}
+
+
+async def test_phrase_postmortem_disabled_without_key_returns_none():
+    llm = LLM(api_key=None)
+    assert await llm.phrase_postmortem(_PM_FACTS) is None
+
+
+@requires_key
+async def test_phrase_postmortem_returns_prose_summary_no_headers():
+    llm = LLM(api_key=API_KEY)
+    text = await llm.phrase_postmortem(_PM_FACTS)
+    assert isinstance(text, str) and text.strip()
+    assert "##" not in text  # prose only — never a new section/header
