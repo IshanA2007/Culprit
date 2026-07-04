@@ -16,8 +16,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from culprit.config import get_settings
 from culprit.db import get_session
+from culprit.ingest.github import ingest_github
 from culprit.ingest.sentry import ingest_sentry
-from culprit.signatures import verify_sentry
+from culprit.signatures import verify_github, verify_sentry
 
 app = FastAPI(title="Culprit")
 
@@ -40,3 +41,18 @@ async def ingest_sentry_route(request: Request, session: SessionDep) -> dict:
 
     signal = await ingest_sentry(session, raw, datetime.now(UTC))
     return {"signal_id": signal.id if signal else None}
+
+
+@app.post("/ingest/github")
+async def ingest_github_route(request: Request, session: SessionDep) -> dict:
+    raw = await request.body()
+    signature = request.headers.get("x-hub-signature-256")
+    secret = get_settings().culprit_gh_webhook_secret
+    if not verify_github(secret, raw, signature):
+        raise HTTPException(status_code=401, detail="invalid GitHub signature")
+
+    deploy = await ingest_github(session, raw)
+    return {
+        "deploy_id": deploy.id if deploy else None,
+        "head_sha": deploy.head_sha if deploy else None,
+    }
