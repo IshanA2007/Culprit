@@ -15,6 +15,7 @@ dependencies = [
     "anthropic>=0.40,<1",
     "python-dateutil>=2.9,<3",
     "pgvector>=0.3,<0.4",
+    "cryptography>=44,<46",
 ]
 
 [project.scripts]

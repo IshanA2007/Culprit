@@ -1,0 +1,15 @@
+{
+  "received_at": "2026-07-04T04:08:04.000Z",
+  "source": "sns",
+  "resource": "notification",
+  "headers": {
+    "content-type": "text/plain; charset=UTF-8",
+    "user-agent": "Amazon Simple Notification Service Agent",
+    "x-amz-sns-message-type": "Notification",
+    "x-amz-sns-message-id": "4eb0f55d-ca0a-3596-621f-50d50d094a20",
+    "x-amz-sns-topic-arn": "arn:aws:sns:us-east-1:123456789012:tcf-prod-alarms",
+    "x-amz-sns-subscription-arn": "arn:aws:sns:us-east-1:123456789012:tcf-prod-alarms:68eaa9a6-a6b6-7570-73a0-377f17efd36d"
+  },
+  "raw_body": "{\"Type\":\"Notification\",\"MessageId\":\"4eb0f55d-ca0a-3596-621f-50d50d094a20\",\"TopicArn\":\"arn:aws:sns:us-east-1:123456789012:tcf-prod-alarms\",\"Subject\":\"ALARM: \\\"tcf-prod-alb-5xx\\\" in US East (N. Virginia)\",\"Message\":\"{\\\"AlarmName\\\": \\\"tcf-prod-alb-5xx\\\", \\\"AlarmDescription\\\": \\\"Elevated ELB/target 5xx responses from the ALB.\\\", \\\"AWSAccountId\\\": \\\"123456789012\\\", \\\"AlarmConfigurationUpdatedTimestamp\\\": \\\"2026-07-01T00:00:00.000+0000\\\", \\\"NewStateValue\\\": \\\"ALARM\\\", \\\"NewStateReason\\\": \\\"Threshold Crossed: 2 datapoint(s) GreaterThanThreshold the threshold (5.0).\\\", \\\"StateChangeTime\\\": \\\"2026-07-04T04:08:04.000+0000\\\", \\\"Region\\\": \\\"US East (N. Virginia)\\\", \\\"AlarmArn\\\": \\\"arn:aws:cloudwatch:us-east-1:123456789012:alarm:tcf-prod-alb-5xx\\\", \\\"OldStateValue\\\": \\\"OK\\\", \\\"OKActions\\\": [\\\"arn:aws:sns:us-east-1:123456789012:tcf-prod-alarms\\\"], \\\"AlarmActions\\\": [\\\"arn:aws:sns:us-east-1:123456789012:tcf-prod-alarms\\\"], \\\"InsufficientDataActions\\\": [], \\\"Trigger\\\": {\\\"MetricName\\\": \\\"HTTPCode_ELB_5XX_Count\\\", \\\"Namespace\\\": \\\"AWS/ApplicationELB\\\", \\\"StatisticType\\\": \\\"Statistic\\\", \\\"Statistic\\\": \\\"Sum\\\", \\\"Unit\\\": null, \\\"Dimensions\\\": [{\\\"value\\\": \\\"app/tcf-prod-alb/50dc6c495c0c9188\\\", \\\"name\\\": \\\"LoadBalancer\\\"}], \\\"Period\\\": 60, \\\"EvaluationPeriods\\\": 2, \\\"ComparisonOperator\\\": \\\"GreaterThanThreshold\\\", \\\"Threshold\\\": 5.0, \\\"TreatMissingData\\\": \\\"missing\\\", \\\"EvaluateLowSampleCountPercentile\\\": \\\"\\\"}}\",\"Timestamp\":\"2026-07-04T04:08:04.000Z\",\"SignatureVersion\":\"1\",\"Signature\":\"TlNUeaMQHR7fsf3hOe76IWpQxxIyPPMmYo3810+MujK+A+ByNuaA2dam3ZF1/O3bpR3Zm54Ycdr5N+rf0QvbtFjPWM4YtytTC3/ikx2TqncG2vh+k/wvXeUD3IzwYjmBpbjiYVJ7IqXMapKf0D1Wae/004xBLUvQZ0a4lYaFR7FW2ZS9ebN57e/KzEqE3F3EPjohaNWA9f4PBFsoo1g1uhK40s1OP/IJGgPbSs8NATYWbEqAsa9kntO1ZLGwDrRpSTCdTPTSXCiZeYnoyBxVbvy0bUL8goYgQ+ADv1e3dtnHCagJ8m3brUUU7rITIi4mDErodMsBunVnFqN0IPsGNw==\",\"SigningCertURL\":\"https://sns.us-east-1.amazonaws.com/SimpleNotificationService-f5ac28cc62f96dd394d9b9209ed973c8.pem\",\"UnsubscribeURL\":\"https://sns.us-east-1.amazonaws.com/?Action=Unsubscribe&SubscriptionArn=arn:aws:sns:us-east-1:123456789012:tcf-prod-alarms:68eaa9a6-a6b6-7570-73a0-377f17efd36d\"}",
+  "reconstructed": true
+}

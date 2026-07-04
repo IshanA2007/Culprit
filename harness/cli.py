@@ -117,6 +117,20 @@ def _cmd_backfill_deploys(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_backfill_sns(_args: argparse.Namespace) -> int:
+    from harness.snsfeed import backfill_sns
+
+    # Signs with the vendored keypair when present (harness/snsfeed_inputs/,
+    # private key gitignored); the committed cert lets verification run offline.
+    stats = backfill_sns()
+    signed = "signed" if stats["signed"] else "unsigned"
+    print(
+        f"sns feed: wrote {stats['fixtures_written']} {signed} SNS/CloudWatch "
+        f"alarm fixtures for {stats['runs']} runs -> fixtures/sns/"
+    )
+    return 0
+
+
 def _not_implemented(task: str):
     def _run(_args: argparse.Namespace) -> int:
         print(f"'{_args.command}' is implemented in {task} (needs live infra).")
@@ -169,6 +183,11 @@ def build_parser() -> argparse.ArgumentParser:
         "reconstructed payloads are not GitHub-delivered)",
     )
     bf.set_defaults(func=_cmd_backfill_deploys)
+
+    sub.add_parser(
+        "backfill-sns",
+        help="generate synthesized SNS/CloudWatch alarm fixtures + link them in runs",
+    ).set_defaults(func=_cmd_backfill_sns)
 
     for name, task in [
         ("up", "Task 3"),

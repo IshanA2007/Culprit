@@ -22,3 +22,4 @@ fixture_paths: []
 log_paths:
 - fixtures/logs/20260704T040050-search-silent-zero-results-w1-web.log
 deploy: fixtures/github/workflow_run/20260704T040050-be0ac737.json
+sns: fixtures/sns/20260704T040050-2f76d0c7.json
