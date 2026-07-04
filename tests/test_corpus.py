@@ -64,6 +64,19 @@ def test_run_ids_unique():
     assert len(ids) == len(set(ids))
 
 
+def test_no_orphaned_sentry_fixtures():
+    """Every recorded Sentry fixture is referenced by exactly one run record —
+    no strays from late-arriving webhooks or ad-hoc diagnostics."""
+    sentry_dir = FIXTURES_DIR / "sentry"
+    if not sentry_dir.exists():
+        return
+    referenced = {p for r in RUNS for p in r.fixture_paths}
+    repo_root = FIXTURES_DIR.parent
+    for f in sentry_dir.rglob("*.json"):
+        rel = str(f.relative_to(repo_root))
+        assert rel in referenced, f"orphaned fixture (no run references it): {rel}"
+
+
 def _fork_has(sha: str) -> bool:
     out = subprocess.run(
         ["git", "cat-file", "-t", sha],
