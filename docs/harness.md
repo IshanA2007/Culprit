@@ -82,17 +82,30 @@ pipeline runs fully in dry mode without them. To record the real corpus:
 
 1. **ngrok**: `ngrok http 9000 --domain <static-domain>` → the recorder
    (`uv run culprit-harness record`). This domain is the Sentry webhook URL.
-2. **Sentry** (free Developer): create a Django project → `SENTRY_DSN`. Create a
-   `sentry-cli` auth token → `SENTRY_AUTH_TOKEN`; note `SENTRY_ORG` /
-   `SENTRY_PROJECT`. Create an **internal integration** (Alert Rule Action +
-   Issue&Event:Read, webhook URL = the ngrok domain, Issue-webhook ON) → record
-   the **Client Secret** (HMAC verification). Add one issue-alert rule routed to
-   the integration.
-3. Rebuild the web image so `sentry-sdk` is installed, then export
-   `SENTRY_DSN`/`SENTRY_RELEASE` on recreate. With `SENTRY_DSN` set, `run` will
-   `sentry-cli releases new/set-commits --local/finalize` (asserting ≥1 commit
-   associated) and collect the `event_alert` + `issue` webhooks into
-   `fixtures/sentry/`.
+2. **Sentry** (free Developer): create a Django project → `SENTRY_DSN`; note
+   `SENTRY_ORG` / `SENTRY_PROJECT` slugs (`SENTRY_URL=https://us.sentry.io` for
+   the US region). Create ONE **internal integration** (Settings → Developer
+   Settings → Custom Integrations) — it provides both the API token and the
+   webhook secret:
+   - Webhook URL = `https://<ngrok-domain>/sentry`, **Alert Rule Action ON**,
+     Webhooks: **issue** checked.
+   - Permissions: **Project: Read**, **Release: Admin**, **Issue & Event:
+     Admin**, and **Organization: Read** (required — `set-commits` calls
+     `GET /organizations/<org>/repos/`, which needs `org:read`).
+   - Create a **Token** inside the integration → `SENTRY_AUTH_TOKEN`. Copy the
+     **Client Secret** → HMAC verification.
+   Add one issue-alert rule: *When* "A new issue is created" → *Then* "Send a
+   notification via <integration>". Turn **Spike Protection off**.
+   Put all of these in a gitignored `.env` and `source` it before running.
+3. Rebuild the web image so `sentry-sdk` is installed. With `SENTRY_DSN` set,
+   `run` does `sentry-cli releases new / set-commits --local --ignore-missing /
+   finalize` (asserting ≥1 commit associated) and collects the `event_alert` +
+   `issue` webhooks into `fixtures/sentry/{event_alert,issue}/`. The runner
+   deletes the issue between runs so "A new issue is created" keeps firing.
+
+   *Gotcha:* `set-commits` needs `--ignore-missing` — each scenario is a
+   distinct fault branch, so a prior run's release SHA isn't in the next
+   window's ancestry and `--local` would otherwise error.
 
 **Quota budget**: Sentry free tier = 5k errors/month. Traffic is throttled
 (`trigger.throttle_seconds`), `traces_sample_rate=0.0` (errors only), spike

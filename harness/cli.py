@@ -88,6 +88,17 @@ def _cmd_record_corpus(_args: argparse.Namespace) -> int:
     return 0 if all(r["status"] == "ok" for r in results) else 1
 
 
+def _cmd_scrub_fixtures(_args: argparse.Namespace) -> int:
+    from harness.scrub import scrub_all
+
+    stats = scrub_all()
+    print(
+        f"scrubbed {stats['scrubbed']}/{stats['scanned']} fixtures, "
+        f"redacted {stats['emails_removed']} emails"
+    )
+    return 0
+
+
 def _not_implemented(task: str):
     def _run(_args: argparse.Namespace) -> int:
         print(f"'{_args.command}' is implemented in {task} (needs live infra).")
@@ -124,6 +135,10 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser(
         "record-corpus", help="record the full corpus (all faults x window sizes)"
     ).set_defaults(func=_cmd_record_corpus)
+
+    sub.add_parser(
+        "scrub-fixtures", help="redact PII (emails) from recorded fixtures + re-sign"
+    ).set_defaults(func=_cmd_scrub_fixtures)
 
     for name, task in [
         ("up", "Task 3"),
