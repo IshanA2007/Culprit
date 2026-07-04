@@ -1,0 +1,20 @@
+diff --git a/tcf_website/views/courses/course.py b/tcf_website/views/courses/course.py
+index f0a15d45..32b512fe 100644
+--- a/tcf_website/views/courses/course.py
++++ b/tcf_website/views/courses/course.py
+@@ -55,7 +55,14 @@ def build_section_times_maps_by_instructor(
+ 
+ 
+ def course_view(request, mnemonic: str, course_number: int):
+-    """Course view."""
++    """Render the course page for a given subdepartment mnemonic and number.
++
++    Redirects to the canonical uppercase mnemonic when needed, looks up the
++    course, and annotates each instructor with their most recent semester
++    taught along with the section-time maps used by the template. Reads the
++    ``latest``, ``sortby``, and ``order`` query parameters to control which
++    instructors are shown and how they are sorted.
++    """
+     if mnemonic != mnemonic.upper():
+         return redirect(
+             "course", mnemonic=mnemonic.upper(), course_number=course_number

@@ -1,0 +1,15 @@
+diff --git a/tcf_core/context_processors.py b/tcf_core/context_processors.py
+index 73bc9fc0..a67f1ae3 100644
+--- a/tcf_core/context_processors.py
++++ b/tcf_core/context_processors.py
+@@ -5,8 +5,8 @@ from django.conf import settings
+ from tcf_website.models import Semester
+ 
+ 
+-def base(request):
+-    """Inject user + latest semester info."""
++def base(request) -> dict:
++    """Inject user + latest semester info into the template context."""
+     return {
+         "DEBUG": settings.DEBUG,
+         "USER": request.user,
