@@ -24,3 +24,6 @@ fixture_paths:
 log_paths:
 - fixtures/logs/20260704T034708-search-fielderror-500-w1-web.log
 deploy: fixtures/github/workflow_run/20260704T034708-a5bca2f4.json
+sns: null
+fix_deploy: fixtures/github/workflow_run/20260704T034708-fix-d136c0ce.json
+thread: fixtures/discord/20260704T034708-6a6e5d32.json

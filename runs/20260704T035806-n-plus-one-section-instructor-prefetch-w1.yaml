@@ -23,3 +23,5 @@ log_paths:
 - fixtures/logs/20260704T035806-n-plus-one-section-instructor-prefetch-w1-web.log
 deploy: fixtures/github/workflow_run/20260704T035806-03091014.json
 sns: fixtures/sns/20260704T035806-d0fa82d2.json
+fix_deploy: fixtures/github/workflow_run/20260704T035806-fix-dd42ea45.json
+thread: fixtures/discord/20260704T035806-8e310f1a.json

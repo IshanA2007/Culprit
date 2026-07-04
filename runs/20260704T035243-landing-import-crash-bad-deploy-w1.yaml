@@ -24,3 +24,6 @@ fixture_paths:
 log_paths:
 - fixtures/logs/20260704T035243-landing-import-crash-bad-deploy-w1-web.log
 deploy: fixtures/github/workflow_run/20260704T035243-2fc6ce01.json
+sns: null
+fix_deploy: fixtures/github/workflow_run/20260704T035243-fix-2b45cd15.json
+thread: fixtures/discord/20260704T035243-41befb7d.json

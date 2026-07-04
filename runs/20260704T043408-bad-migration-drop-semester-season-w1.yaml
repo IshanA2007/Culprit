@@ -24,3 +24,6 @@ fixture_paths:
 log_paths:
 - fixtures/logs/20260704T043408-bad-migration-drop-semester-season-w1-web.log
 deploy: fixtures/github/workflow_run/20260704T043408-00b61915.json
+sns: null
+fix_deploy: fixtures/github/workflow_run/20260704T043408-fix-cc6ab6b7.json
+thread: fixtures/discord/20260704T043408-92498b9f.json

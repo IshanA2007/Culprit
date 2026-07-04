@@ -131,6 +131,23 @@ def _cmd_backfill_sns(_args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_backfill_postmortem_inputs(_args: argparse.Namespace) -> int:
+    import os
+
+    from harness.discordfeed import backfill_postmortem_inputs
+
+    # Sign the rollback deploy fixtures with the fork's GitHub webhook secret when
+    # available (parity with backfill-deploys).
+    secret = os.environ.get("CULPRIT_GH_WEBHOOK_SECRET") or None
+    stats = backfill_postmortem_inputs(secret=secret)
+    print(
+        f"postmortem inputs: wrote {stats['fix_deploys_written']} rollback "
+        f"fix-deploy fixtures + {stats['threads_written']} Discord thread fixtures "
+        f"for {stats['runs']} runs -> fixtures/github/workflow_run/ + fixtures/discord/"
+    )
+    return 0
+
+
 def _not_implemented(task: str):
     def _run(_args: argparse.Namespace) -> int:
         print(f"'{_args.command}' is implemented in {task} (needs live infra).")
@@ -188,6 +205,11 @@ def build_parser() -> argparse.ArgumentParser:
         "backfill-sns",
         help="generate synthesized SNS/CloudWatch alarm fixtures + link them in runs",
     ).set_defaults(func=_cmd_backfill_sns)
+
+    sub.add_parser(
+        "backfill-postmortem-inputs",
+        help="generate rollback fix-deploy + Discord thread fixtures (M4) + link runs",
+    ).set_defaults(func=_cmd_backfill_postmortem_inputs)
 
     for name, task in [
         ("up", "Task 3"),
