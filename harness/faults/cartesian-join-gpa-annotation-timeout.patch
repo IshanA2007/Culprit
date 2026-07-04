@@ -1,0 +1,32 @@
+diff --git a/tcf_website/models/models.py b/tcf_website/models/models.py
+index 372caacd..50f7ef48 100644
+--- a/tcf_website/models/models.py
++++ b/tcf_website/models/models.py
+@@ -749,16 +749,9 @@ class Course(models.Model):
+     def with_stats(cls):
+         """Base queryset annotated with display stats (rating, difficulty, GPA, mnemonic).
+ 
+-        Uses a subquery for GPA to avoid a cartesian product between the review
+-        and coursegrade tables (which would cause review rows to be multiplied
+-        by the number of grade buckets before GROUP BY reduces them).
++        Annotates the average GPA alongside the review-based rating and
++        difficulty so all display stats come back in a single query.
+         """
+-        avg_gpa_sq = Subquery(
+-            CourseGrade.objects.filter(course=OuterRef("pk"))
+-            .values("course")
+-            .annotate(v=Avg("average"))
+-            .values("v")
+-        )
+         return cls.objects.select_related(
+             "subdepartment", "semester_last_taught"
+         ).annotate(
+@@ -776,7 +769,7 @@ class Course(models.Model):
+             average_difficulty=Avg(
+                 "review__difficulty", filter=Q(review__hidden=False)
+             ),
+-            average_gpa=avg_gpa_sq,
++            average_gpa=Avg("coursegrade__average"),
+         )
+ 
+     def get_instructors_and_data(self, latest_semester, latest_only=True):
