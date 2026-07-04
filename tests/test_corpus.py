@@ -8,11 +8,15 @@ network + clone availability so CI (which has neither) skips it.
 
 from __future__ import annotations
 
+import hashlib
+import hmac
+import json
+import os
 import subprocess
 
 import pytest
 
-from harness.config import TCF_WORK_DIR
+from harness.config import FIXTURES_DIR, TCF_WORK_DIR
 from harness.runrecord import load_all_run_records
 
 RUNS = load_all_run_records()
@@ -70,6 +74,30 @@ def _fork_has(sha: str) -> bool:
     return out.returncode == 0 and out.stdout.strip() == "commit"
 
 
+def test_recorded_webhook_signatures_verify():
+    """Every recorded Sentry webhook's HMAC signature verifies against the
+    integration Client Secret (the secret is env-injected, never committed)."""
+    secret = os.environ.get("SENTRY_CLIENT_SECRET")
+    if not secret:
+        pytest.skip("SENTRY_CLIENT_SECRET not set")
+    sentry_dir = FIXTURES_DIR / "sentry"
+    fixtures = list(sentry_dir.rglob("*.json")) if sentry_dir.exists() else []
+    if not fixtures:
+        pytest.skip("no recorded sentry fixtures yet")
+    checked = 0
+    for f in fixtures:
+        env = json.loads(f.read_text())
+        sig = env["headers"].get("sentry-hook-signature")
+        if not sig:
+            continue
+        raw = env["raw_body"].encode("latin-1")
+        expected = hmac.new(secret.encode(), raw, hashlib.sha256).hexdigest()
+        assert hmac.compare_digest(expected, sig), f"{f.name}: bad signature"
+        checked += 1
+    if checked == 0:
+        pytest.skip("no signed fixtures")
+
+
 @pytest.mark.skipif(not TCF_WORK_DIR.exists(), reason="no working clone (CI)")
 def test_every_recorded_sha_is_resolvable():
     """Recorded window SHAs must stay fetchable (M2 reads diffs/blame at them)."""
@@ -77,4 +105,6 @@ def test_every_recorded_sha_is_resolvable():
         pytest.skip("no runs recorded yet")
     for r in RUNS:
         for c in r.window:
-            assert _fork_has(c.sha), f"{r.run_id}: window SHA {c.sha[:10]} not resolvable"
+            assert _fork_has(c.sha), (
+                f"{r.run_id}: window SHA {c.sha[:10]} not resolvable"
+            )

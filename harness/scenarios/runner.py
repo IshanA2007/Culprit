@@ -165,6 +165,31 @@ def _wait_healthy(timeout: int = 40) -> None:
 
 
 # --- step 9 ---------------------------------------------------------------
+def collect_webhooks(since_epoch: float, *, wait: int = 90, poll: int = 3) -> list[str]:
+    """Poll fixtures/sentry/ for webhooks the recorder wrote during this run.
+
+    Sentry's issue-alert delivery has latency (seconds to ~1 min), so we wait
+    up to `wait`s for an event_alert to land, then return every new fixture.
+    """
+    sentry_dir = config.FIXTURES_DIR / "sentry"
+
+    def _new() -> list:
+        if not sentry_dir.exists():
+            return []
+        return [
+            p for p in sentry_dir.rglob("*.json") if p.stat().st_mtime >= since_epoch
+        ]
+
+    waited = 0
+    while waited < wait:
+        found = _new()
+        if any("event_alert" in p.parts for p in found):
+            break
+        time.sleep(poll)
+        waited += poll
+    return [str(p.relative_to(config.REPO_ROOT)) for p in sorted(_new())]
+
+
 def capture_logs(run_id: str, since_epoch: float) -> str:
     dest_dir = config.FIXTURES_DIR / "logs"
     dest_dir.mkdir(parents=True, exist_ok=True)
@@ -245,7 +270,10 @@ def run_scenario(
         subprocess.run(fault.docker_action, shell=True, check=False)
     traffic = drive(fault, cookies=cookies, csrf_token=csrf, repeats=3)
 
-    # 9. capture logs (+ webhooks when a recorder is live — dry mode: logs only)
+    # 9. collect webhooks (Sentry-visible faults; delivery has latency) + logs
+    fixture_paths: list[str] = []
+    if sentry_dsn and fault.sentry_visible:
+        fixture_paths = collect_webhooks(since_epoch=epoch)
     log_path = capture_logs(run_id, since_epoch=epoch)
 
     # 10. run record
@@ -267,14 +295,21 @@ def run_scenario(
             "decoys": [d.id for d in decoys],
             "traffic_5xx": traffic.error_count,
         },
+        fixture_paths=fixture_paths,
         log_paths=[log_path],
     )
     rr.write()
 
-    # 11. cleanup
+    # 11. cleanup — restore infra, reset the working branch, and DELETE this
+    # run's Sentry issues so the next run of any fault creates a fresh issue
+    # (keeps "A new issue is created" firing; plan decision 4).
     if fault.fault_class is FaultClass.INFRA:
         _restore_infra(fault)
     reset_to_base()
+    if sentry_dsn:
+        from harness.sentry_release import purge_environment_issues
+
+        purge_environment_issues()
     return rr
 
 

@@ -24,7 +24,9 @@ def test_record_payload_is_byte_identical(tmp_path, monkeypatch):
     assert envelope["resource"] == "issue"
     # latin-1 round-trip recovers the exact wire bytes.
     assert envelope["raw_body"].encode("latin-1") == raw
-    assert dest.parent.name == "sentry"
+    # fixtures/sentry/issue/<file>.json
+    assert dest.parent.name == "issue"
+    assert dest.parent.parent.name == "sentry"
 
 
 def test_catch_all_endpoint_records(tmp_path, monkeypatch):
@@ -38,8 +40,9 @@ def test_catch_all_endpoint_records(tmp_path, monkeypatch):
     )
     assert resp.status_code == 200
 
-    files = list((tmp_path / "sentry").glob("*.json"))
+    files = list((tmp_path / "sentry").rglob("*.json"))
     assert len(files) == 1
+    assert files[0].parent.name == "event_alert"
     envelope = json.loads(files[0].read_text())
     assert envelope["raw_body"].encode("latin-1") == body
     assert envelope["headers"]["sentry-hook-resource"] == "event_alert"

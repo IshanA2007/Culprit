@@ -65,15 +65,36 @@ def count_associated_commits(version: str) -> int:
     return len(resp.json())
 
 
-def resolve_issue(issue_id: str) -> None:
-    """Resolve/delete a fault's issue between runs so the per-issue alert
-    action-interval (~5 min) doesn't suppress the next run's webhook."""
+def _api() -> tuple[str, str, str, dict[str, str]]:
     org = os.environ["SENTRY_ORG"]
-    token = os.environ["SENTRY_AUTH_TOKEN"]
+    project = os.environ["SENTRY_PROJECT"]
     base = os.environ.get("SENTRY_URL", "https://sentry.io").rstrip("/")
-    httpx.put(
-        f"{base}/api/0/organizations/{org}/issues/{issue_id}/",
-        headers={"Authorization": f"Bearer {token}"},
-        json={"status": "resolved"},
+    headers = {"Authorization": f"Bearer {os.environ['SENTRY_AUTH_TOKEN']}"}
+    return org, project, base, headers
+
+
+def purge_environment_issues(environment: str = "fault-harness") -> int:
+    """DELETE every issue in the fault-harness environment.
+
+    Called between sequential runs so each fault run creates a genuinely NEW
+    Sentry issue — the "A new issue is created" alert then fires every time, and
+    the per-issue ~5-min action interval never suppresses a run's webhook
+    (plan decision 4). Runs are sequential (shared web/db), so scoping by
+    environment is precise.
+    """
+    org, project, base, headers = _api()
+    listed = httpx.get(
+        f"{base}/api/0/projects/{org}/{project}/issues/",
+        headers=headers,
+        params={"query": "", "environment": environment, "statsPeriod": "1h"},
         timeout=15,
-    ).raise_for_status()
+    )
+    listed.raise_for_status()
+    ids = [i["id"] for i in listed.json()]
+    for issue_id in ids:
+        httpx.delete(
+            f"{base}/api/0/organizations/{org}/issues/{issue_id}/",
+            headers=headers,
+            timeout=15,
+        )
+    return len(ids)

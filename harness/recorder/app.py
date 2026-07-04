@@ -50,9 +50,10 @@ def record_payload(source: str, headers: dict[str, str], raw_body: bytes) -> Pat
         "x-github-event", "event"
     )
     ts = datetime.now(UTC).strftime("%Y%m%dT%H%M%S%f")
-    dest_dir = _fixtures_dir() / _safe_segment(source)
+    # fixtures/<source>/<resource>/ — e.g. fixtures/sentry/event_alert/
+    dest_dir = _fixtures_dir() / _safe_segment(source) / _safe_segment(resource)
     dest_dir.mkdir(parents=True, exist_ok=True)
-    fname = f"{ts}-{_safe_segment(resource)}-{uuid.uuid4().hex[:8]}.json"
+    fname = f"{ts}-{uuid.uuid4().hex[:8]}.json"
     dest = dest_dir / fname
 
     envelope = {
