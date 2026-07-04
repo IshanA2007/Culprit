@@ -1,0 +1,7 @@
+Starting Django Server with Gunicorn...
+[2026-07-04 04:02:06 +0000] [1] [INFO] Starting gunicorn 22.0.0
+[2026-07-04 04:02:06 +0000] [1] [INFO] Listening at: http://0.0.0.0:80 (1)
+[2026-07-04 04:02:06 +0000] [1] [INFO] Using worker: gthread
+[2026-07-04 04:02:06 +0000] [7] [INFO] Booting worker with pid: 7
+[2026-07-04 04:02:06 +0000] [8] [INFO] Booting worker with pid: 8
+[2026-07-04 04:02:06 +0000] [9] [INFO] Booting worker with pid: 9

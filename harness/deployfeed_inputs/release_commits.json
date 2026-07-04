@@ -1,0 +1,310 @@
+{
+  "0413ad071dfad3dc74cdb8a51fad2acb1d87fba8": {
+    "sha": "0413ad071dfad3dc74cdb8a51fad2acb1d87fba8",
+    "tree_id": "216ff6b6ff4029e34b2125e15e7f9920f6b036b2",
+    "message": "refactor: add return type hint to base context processor",
+    "timestamp": "2026-07-04T04:30:43Z",
+    "author": {
+      "name": "Logan Bradley",
+      "email": "redacted@example.com"
+    },
+    "committer": {
+      "name": "Logan Bradley",
+      "email": "redacted@example.com"
+    }
+  },
+  "187b0eff3f212fecd2c32eaeafddfc7d4624c206": {
+    "sha": "187b0eff3f212fecd2c32eaeafddfc7d4624c206",
+    "tree_id": "2eae31510fa8dd75adf19334539d3e1ed0e16cab",
+    "message": "docs: clarify parse_mode return tuple and default",
+    "timestamp": "2026-07-04T04:02:20Z",
+    "author": {
+      "name": "Logan Bradley",
+      "email": "redacted@example.com"
+    },
+    "committer": {
+      "name": "Logan Bradley",
+      "email": "redacted@example.com"
+    }
+  },
+  "2126ec08b659479e2231601ccf2683e5a034a222": {
+    "sha": "2126ec08b659479e2231601ccf2683e5a034a222",
+    "tree_id": "383ef066d9c93aae30aeb6a992b91e1a3c7af175",
+    "message": "docs: expand browse view docstring with mode-dispatch details",
+    "timestamp": "2026-07-04T03:46:28Z",
+    "author": {
+      "name": "Logan Bradley",
+      "email": "redacted@example.com"
+    },
+    "committer": {
+      "name": "Logan Bradley",
+      "email": "redacted@example.com"
+    }
+  },
+  "489bf2f9421eab1c0335b6faeed018f228e12afe": {
+    "sha": "489bf2f9421eab1c0335b6faeed018f228e12afe",
+    "tree_id": "621284558583563e42ddd1764c839963d308aee9",
+    "message": "refactor: add return type hint to base context processor",
+    "timestamp": "2026-07-04T03:47:58Z",
+    "author": {
+      "name": "Logan Bradley",
+      "email": "redacted@example.com"
+    },
+    "committer": {
+      "name": "Logan Bradley",
+      "email": "redacted@example.com"
+    }
+  },
+  "505d87bfa7300f05abd095fc357a9f7f8b119fc4": {
+    "sha": "505d87bfa7300f05abd095fc357a9f7f8b119fc4",
+    "tree_id": "9620e7f1fd206a78dd1df6dcbae137dba2027094",
+    "message": "refactor: add return type hint to base context processor",
+    "timestamp": "2026-07-04T03:59:58Z",
+    "author": {
+      "name": "Logan Bradley",
+      "email": "redacted@example.com"
+    },
+    "committer": {
+      "name": "Logan Bradley",
+      "email": "redacted@example.com"
+    }
+  },
+  "7f6f36b49e5e0078634ce04d77fb2713c28edf2e": {
+    "sha": "7f6f36b49e5e0078634ce04d77fb2713c28edf2e",
+    "tree_id": "0ff00d6913eea8f13955daa71e4570b71e2c7ede",
+    "message": "refactor: rename instructor route, update templates",
+    "timestamp": "2026-07-04T03:45:53Z",
+    "author": {
+      "name": "Logan Bradley",
+      "email": "redacted@example.com"
+    },
+    "committer": {
+      "name": "Logan Bradley",
+      "email": "redacted@example.com"
+    }
+  },
+  "800cb655c2525ea9d4512e286f8f2c6d9b2e3b3b": {
+    "sha": "800cb655c2525ea9d4512e286f8f2c6d9b2e3b3b",
+    "tree_id": "20832b8f9848525365004f17a97f287f3b963c12",
+    "message": "search: rename similarity annotation for clarity",
+    "timestamp": "2026-07-04T03:47:11Z",
+    "author": {
+      "name": "Logan Bradley",
+      "email": "redacted@example.com"
+    },
+    "committer": {
+      "name": "Logan Bradley",
+      "email": "redacted@example.com"
+    }
+  },
+  "9328bcb76242cdab9fcd738fbbee31fc8a239ae4": {
+    "sha": "9328bcb76242cdab9fcd738fbbee31fc8a239ae4",
+    "tree_id": "0e4e325924c81cb273636d864a189dc0b1b0e5c9",
+    "message": "docs: expand course_view docstring to describe redirect and instructor annotation",
+    "timestamp": "2026-07-04T03:58:38Z",
+    "author": {
+      "name": "Logan Bradley",
+      "email": "redacted@example.com"
+    },
+    "committer": {
+      "name": "Logan Bradley",
+      "email": "redacted@example.com"
+    }
+  },
+  "9961df32417a96fea411c0a6c29f61906315df37": {
+    "sha": "9961df32417a96fea411c0a6c29f61906315df37",
+    "tree_id": "ab71b6ac35aa41345524dcbe60c1b1f3c021dc23",
+    "message": "migrations: drop redundant semester season column",
+    "timestamp": "2026-07-04T04:34:11Z",
+    "author": {
+      "name": "Logan Bradley",
+      "email": "redacted@example.com"
+    },
+    "committer": {
+      "name": "Logan Bradley",
+      "email": "redacted@example.com"
+    }
+  },
+  "a3082df16fa7afd3b8d15eafa317499f5e6349ac": {
+    "sha": "a3082df16fa7afd3b8d15eafa317499f5e6349ac",
+    "tree_id": "11a370edada2bc88e246a8e8a33e01dbea08b3bb",
+    "message": "migrations: drop redundant search indexes",
+    "timestamp": "2026-07-04T04:01:52Z",
+    "author": {
+      "name": "Logan Bradley",
+      "email": "redacted@example.com"
+    },
+    "committer": {
+      "name": "Logan Bradley",
+      "email": "redacted@example.com"
+    }
+  },
+  "a858977112c65f29fca5b92148a97e77edf70e0e": {
+    "sha": "a858977112c65f29fca5b92148a97e77edf70e0e",
+    "tree_id": "f7022ae2c1d42ab360d6ddbc0e83f8d29c99a1e6",
+    "message": "refactor: add return type hint to base context processor",
+    "timestamp": "2026-07-04T04:04:16Z",
+    "author": {
+      "name": "Logan Bradley",
+      "email": "redacted@example.com"
+    },
+    "committer": {
+      "name": "Logan Bradley",
+      "email": "redacted@example.com"
+    }
+  },
+  "af2b1dbe20b05d001e35544a01040a4cfd8d9b65": {
+    "sha": "af2b1dbe20b05d001e35544a01040a4cfd8d9b65",
+    "tree_id": "6cedc0076fe6d3c7d80f9b6660f09910bc7853ac",
+    "message": "search: tighten similarity threshold",
+    "timestamp": "2026-07-04T04:00:53Z",
+    "author": {
+      "name": "Logan Bradley",
+      "email": "redacted@example.com"
+    },
+    "committer": {
+      "name": "Logan Bradley",
+      "email": "redacted@example.com"
+    }
+  },
+  "af2d938aacad07a8c131f3cd268a8e5e44162761": {
+    "sha": "af2d938aacad07a8c131f3cd268a8e5e44162761",
+    "tree_id": "1d893425e920df9400ebac8b2747b24c0d6ba729",
+    "message": "docs: clarify pagination guard fallback behavior",
+    "timestamp": "2026-07-04T03:53:27Z",
+    "author": {
+      "name": "Logan Bradley",
+      "email": "redacted@example.com"
+    },
+    "committer": {
+      "name": "Logan Bradley",
+      "email": "redacted@example.com"
+    }
+  },
+  "b288f8ef7750374e10ee1f696c19a1e4dc3194ee": {
+    "sha": "b288f8ef7750374e10ee1f696c19a1e4dc3194ee",
+    "tree_id": "bccb89f4e8c3a06d1c825121a95648e0783abe63",
+    "message": "docs: expand browse view docstring with mode-dispatch details",
+    "timestamp": "2026-07-04T04:32:13Z",
+    "author": {
+      "name": "Logan Bradley",
+      "email": "redacted@example.com"
+    },
+    "committer": {
+      "name": "Logan Bradley",
+      "email": "redacted@example.com"
+    }
+  },
+  "bf597a99a12624bd9555c78e03dcc3336d7fe12b": {
+    "sha": "bf597a99a12624bd9555c78e03dcc3336d7fe12b",
+    "tree_id": "37b63a7ca01b4112af8eb1f5530064916e283c38",
+    "message": "stats: annotate gpa and rating together",
+    "timestamp": "2026-07-04T03:59:06Z",
+    "author": {
+      "name": "Logan Bradley",
+      "email": "redacted@example.com"
+    },
+    "committer": {
+      "name": "Logan Bradley",
+      "email": "redacted@example.com"
+    }
+  },
+  "c9ae3bba3ba47792e97a6615648bf649d2f9fcd3": {
+    "sha": "c9ae3bba3ba47792e97a6615648bf649d2f9fcd3",
+    "tree_id": "34faec6da89a195095977377603fc31f6dfa51d4",
+    "message": "docs: clarify /health short-circuit in health check middleware",
+    "timestamp": "2026-07-04T04:01:23Z",
+    "author": {
+      "name": "Logan Bradley",
+      "email": "redacted@example.com"
+    },
+    "committer": {
+      "name": "Logan Bradley",
+      "email": "redacted@example.com"
+    }
+  },
+  "d04e61744c120a4cabe299d9d55089b5b599d099": {
+    "sha": "d04e61744c120a4cabe299d9d55089b5b599d099",
+    "tree_id": "556a93ed26752cdd63a146ba16f4e77857351209",
+    "message": "docs: clarify pagination guard fallback behavior",
+    "timestamp": "2026-07-04T04:05:08Z",
+    "author": {
+      "name": "Logan Bradley",
+      "email": "redacted@example.com"
+    },
+    "committer": {
+      "name": "Logan Bradley",
+      "email": "redacted@example.com"
+    }
+  },
+  "d376bf7d64890df594d62b4a6678f3e0d0324c00": {
+    "sha": "d376bf7d64890df594d62b4a6678f3e0d0324c00",
+    "tree_id": "f1e4fa2d24b6a8a3b5db4c7c30e4d6c5324cd824",
+    "message": "courses: inline section lookup",
+    "timestamp": "2026-07-04T03:58:09Z",
+    "author": {
+      "name": "Logan Bradley",
+      "email": "redacted@example.com"
+    },
+    "committer": {
+      "name": "Logan Bradley",
+      "email": "redacted@example.com"
+    }
+  },
+  "dd3d21804fca2a3fa3868d84b828158dc2218144": {
+    "sha": "dd3d21804fca2a3fa3868d84b828158dc2218144",
+    "tree_id": "b8d262863e1d7ffe5eb7a0ed884ec7f9745c3d51",
+    "message": "docs: expand browse view docstring with mode-dispatch details",
+    "timestamp": "2026-07-04T04:03:26Z",
+    "author": {
+      "name": "Logan Bradley",
+      "email": "redacted@example.com"
+    },
+    "committer": {
+      "name": "Logan Bradley",
+      "email": "redacted@example.com"
+    }
+  },
+  "df68b8adb9d94c48ce36ffb9081f1cfeb03cdd7c": {
+    "sha": "df68b8adb9d94c48ce36ffb9081f1cfeb03cdd7c",
+    "tree_id": "e2c07e5d735229f3efa9e4a4520aaeae8b8dd92e",
+    "message": "reviews: simplify vote toggling logic",
+    "timestamp": "2026-07-04T04:31:30Z",
+    "author": {
+      "name": "Logan Bradley",
+      "email": "redacted@example.com"
+    },
+    "committer": {
+      "name": "Logan Bradley",
+      "email": "redacted@example.com"
+    }
+  },
+  "ea56b1b1e61638c8ea9636ce1d83d11b95823612": {
+    "sha": "ea56b1b1e61638c8ea9636ce1d83d11b95823612",
+    "tree_id": "ad3f418216d1879f949625006c5aa107b6625083",
+    "message": "home: tidy landing view imports",
+    "timestamp": "2026-07-04T03:52:46Z",
+    "author": {
+      "name": "Logan Bradley",
+      "email": "redacted@example.com"
+    },
+    "committer": {
+      "name": "Logan Bradley",
+      "email": "redacted@example.com"
+    }
+  },
+  "f36932d13bdf0a9893d0b1a48649fade814ee970": {
+    "sha": "f36932d13bdf0a9893d0b1a48649fade814ee970",
+    "tree_id": "20fddab22462fa83cd3ead771f79a524c4978002",
+    "message": "docs: clarify /health short-circuit in health check middleware",
+    "timestamp": "2026-07-04T04:02:49Z",
+    "author": {
+      "name": "Logan Bradley",
+      "email": "redacted@example.com"
+    },
+    "committer": {
+      "name": "Logan Bradley",
+      "email": "redacted@example.com"
+    }
+  }
+}

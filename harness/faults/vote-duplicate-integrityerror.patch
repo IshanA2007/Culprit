@@ -1,0 +1,30 @@
+diff --git a/tcf_website/models/models.py b/tcf_website/models/models.py
+index 372caacd..32ed92a7 100644
+--- a/tcf_website/models/models.py
++++ b/tcf_website/models/models.py
+@@ -1210,12 +1210,6 @@ class Review(models.Model):
+             value=1,
+         ).exists()
+ 
+-        # Delete all prior votes.
+-        Vote.objects.filter(
+-            user=user,
+-            review=self,
+-        ).delete()
+-
+         # Don't upvote again if previously upvoted.
+         if upvoted:
+             return
+@@ -1236,12 +1230,6 @@ class Review(models.Model):
+             value=-1,
+         ).exists()
+ 
+-        # Delete all prior votes.
+-        Vote.objects.filter(
+-            user=user,
+-            review=self,
+-        ).delete()
+-
+         # Don't downvote again if previously downvoted.
+         if downvoted:
+             return

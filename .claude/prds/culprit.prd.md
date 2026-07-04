@@ -46,7 +46,7 @@ We'll know we're right when **the eval harness reports top-1/top-3 culprit accur
 | # | Milestone | Outcome | Status | Plan |
 |---|---|---|---|---|
 | 1 | Fault-injection harness | Forked tCF runs locally dockerized with Sentry wired; ~10 reproducible faults; real webhook payloads captured as pytest fixtures — the demo, eval source, and origin of every resume number | in-progress | `.claude/plans/culprit-m1-fault-injection-harness.plan.md` |
-| 2 | Core pipeline MVP | An injected fault produces a deduped Discord brief with ranked culprit commits (or abstention) within minutes, end-to-end demoable | pending | — |
+| 2 | Core pipeline MVP | An injected fault produces a deduped Discord brief with ranked culprit commits (or abstention) within minutes, end-to-end demoable | in-progress | `.claude/plans/culprit-m2-core-pipeline.plan.md` |
 | 3 | Full diagnosis layer | 8–12 runbooks authored for tCF's actual failure modes and offered correctly; deterministic impact numbers in briefs; SNS/CloudWatch ingest catches app-too-dead-for-Sentry failures | pending | — |
 | 4 | Postmortem generator | Resolving an incident yields a postmortem Markdown PR (timeline + culprit + impact + chat thread) to their repo | pending | — |
 | 5 | Eval, harden, pitch | Measured top-1/top-3 accuracy, retrieval precision, time-to-brief across N incidents; two instrumentation PRs ready (sentry-sdk + Terraform alarms); pitch delivered; deployed Mode B | pending | — |

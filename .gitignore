@@ -1,0 +1,30 @@
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.ruff_cache/
+.pytest_cache/
+
+# uv
+# (uv.lock IS committed — CI installs with --frozen)
+
+# Secrets / env
+.env
+.env.*
+!.env.example
+*.secret
+
+# Harness working clone of theCourseForum2 (a full git checkout the harness
+# thrashes with fault commits — never committed into Culprit; see docs/harness.md)
+.harness-work/
+
+# Local DB dumps used for fast per-scenario resets
+db/*.dump
+db/*.sql
+
+# Scratch
+scratch/

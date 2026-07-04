@@ -1,0 +1,24 @@
+{
+  "received_at": "2026-07-04T03:48:29.315175+00:00",
+  "source": "sentry",
+  "resource": "issue",
+  "headers": {
+    "host": "gush-limelight-thing.ngrok-free.dev",
+    "user-agent": "sentry/26.7.0.dev0 (https://sentry.io)",
+    "content-length": "2180",
+    "accept": "*/*",
+    "accept-encoding": "gzip, deflate, br, zstd",
+    "baggage": "sentry-trace_id=edf4d7067fab49dbafda975b21e9efde,sentry-sample_rand=0.181152,sentry-environment=prod,sentry-release=backend%40a50754879f41ff58e05f206fc95417e7b08ea2ab,sentry-public_key=98443d956c9e40989a0139756c121c34,sentry-transaction=sentry.issues.tasks.post_process.post_process_group,sentry-sample_rate=0.0,sentry-sampled=true",
+    "content-type": "application/json",
+    "request-id": "4c2e436be14e445382502202dfffa9ea",
+    "sentry-hook-resource": "issue",
+    "sentry-hook-signature": "b1decd581fa7b1a412b85f21e069762697d512d475930cb503844aed21d4200a",
+    "sentry-hook-timestamp": "1783136909",
+    "sentry-trace": "edf4d7067fab49dbafda975b21e9efde-a38c7a594a0a4142-0",
+    "x-forwarded-for": "104.155.149.19",
+    "x-forwarded-host": "gush-limelight-thing.ngrok-free.dev",
+    "x-forwarded-proto": "https"
+  },
+  "raw_body": "{\"action\":\"created\",\"installation\":{\"uuid\":\"f1a179a6-83c5-4ee2-a3d8-b9768e388d3a\"},\"data\":{\"issue\":{\"url\":\"https://sentry.io/api/0/organizations/logan-bradley/issues/7593088600/\",\"web_url\":\"https://logan-bradley.sentry.io/issues/7593088600/\",\"project_url\":\"https://logan-bradley.sentry.io/issues/?project=4511674797326336\",\"id\":\"7593088600\",\"shareId\":null,\"shortId\":\"CULPRIT-TCF-A\",\"title\":\"FieldError: Cannot resolve keyword 'similarity_score' into field. Choices are: average_difficulty, average_gpa, average_rating, combined_mnemonic_number, coursegrade, courseinstructorgrade, description, disciplines, id, max_similarity, mnemonic, mnemonic_similarity...\",\"culprit\":\"/search/\",\"permalink\":\"https://logan-bradley.sentry.io/issues/7593088600/\",\"logger\":null,\"level\":\"error\",\"status\":\"unresolved\",\"statusDetails\":{},\"substatus\":\"new\",\"isPublic\":false,\"platform\":\"python\",\"project\":{\"id\":\"4511674797326336\",\"name\":\"culprit-tcf\",\"slug\":\"culprit-tcf\",\"platform\":\"python-django\"},\"type\":\"error\",\"metadata\":{\"value\":\"Cannot resolve keyword 'similarity_score' into field. Choices are: average_difficulty, average_gpa, average_rating, combined_mnemonic_number, coursegrade, courseinstructorgrade, description, disciplines, id, max_similarity, mnemonic, mnemonic_similarity, number, question, review, reviewllmsummary, section, semester_last_taught, semester_last_taught_id, subdepartment, subdepartment_id, title, title_similarity\",\"type\":\"FieldError\",\"filename\":\"tcf_website/views/catalog/search.py\",\"function\":\"fetch_courses\",\"in_app_frame_mix\":\"mixed\",\"sdk\":{\"name\":\"sentry.python.django\",\"name_normalized\":\"sentry.python\"},\"initial_priority\":75,\"title\":null},\"numComments\":0,\"assignedTo\":null,\"isBookmarked\":false,\"isSubscribed\":false,\"subscriptionDetails\":null,\"hasSeen\":false,\"annotations\":[],\"issueType\":\"error\",\"issueCategory\":\"error\",\"priority\":\"high\",\"priorityLockedAt\":null,\"seerFixabilityScore\":null,\"seerAutofixLastTriggered\":null,\"seerExplorerAutofixLastTriggered\":null,\"isUnhandled\":true,\"count\":\"3\",\"userCount\":1,\"firstSeen\":\"2026-07-04T03:48:15.222754+00:00\",\"lastSeen\":\"2026-07-04T03:48:19.324518+00:00\"}},\"actor\":{\"type\":\"application\",\"id\":\"sentry\",\"name\":\"Sentry\"}}",
+  "scrubbed": true
+}

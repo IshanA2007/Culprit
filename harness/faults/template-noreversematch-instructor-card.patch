@@ -1,0 +1,13 @@
+diff --git a/tcf_website/templates/site/courses/course_instructor.html b/tcf_website/templates/site/courses/course_instructor.html
+index 5444b40c..28dac4fd 100644
+--- a/tcf_website/templates/site/courses/course_instructor.html
++++ b/tcf_website/templates/site/courses/course_instructor.html
+@@ -41,7 +41,7 @@
+             <!-- Instructor Row -->
+             <div class="instructor-row">
+                 <div class="instructor-row__left">
+-                    <a href="{% url 'instructor' instructor.id %}" class="instructor-link">
++                    <a href="{% url 'instructor_detail' instructor.id %}" class="instructor-link">
+                         <svg viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"

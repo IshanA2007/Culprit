@@ -1,0 +1,40 @@
+run_id: 20260704T035954-cartesian-join-gpa-annotation-timeout-w4
+fault_id: cartesian-join-gpa-annotation-timeout
+fault_class: code
+ground_truth: culprit_commit
+base_sha: 172effabd7f7dc6ccee9f2b69540835eacf77bf0
+release_sha: 505d87bfa7300f05abd095fc357a9f7f8b119fc4
+window:
+- sha: a794a3b841e514e435e7e04b52c7ab4b60c03ad5
+  message: 'docs: expand course_view docstring to describe redirect and instructor
+    annotation'
+  is_culprit: false
+  is_decoy: true
+- sha: 75cbd1dca5500a1cceff70737e7b2bdbb4d4505e
+  message: 'stats: annotate gpa and rating together'
+  is_culprit: true
+  is_decoy: false
+- sha: e849d6b69477ba6ffac70b6b408f0eacd84fa511
+  message: 'docs: clarify parse_mode return tuple and default'
+  is_culprit: false
+  is_decoy: true
+- sha: 505d87bfa7300f05abd095fc357a9f7f8b119fc4
+  message: 'refactor: add return type hint to base context processor'
+  is_culprit: false
+  is_decoy: true
+culprit_sha: 75cbd1dca5500a1cceff70737e7b2bdbb4d4505e
+injected_at: 20260704T035954
+first_signal_at: null
+decoy_config:
+  size: 4
+  position: middle
+  seed: 1014
+  decoys:
+  - decoy-course-docstring
+  - decoy-utils-docstring
+  - decoy-context-processor-typehint
+  traffic_5xx: 0
+fixture_paths: []
+log_paths:
+- fixtures/logs/20260704T035954-cartesian-join-gpa-annotation-timeout-w4-web.log
+deploy: fixtures/github/workflow_run/20260704T035954-b6bc71a6.json

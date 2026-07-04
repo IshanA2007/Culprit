@@ -1,0 +1,103 @@
+Starting Django Server with Gunicorn...
+[2026-07-04 03:53:42 +0000] [1] [INFO] Starting gunicorn 22.0.0
+[2026-07-04 03:53:42 +0000] [1] [INFO] Listening at: http://0.0.0.0:80 (1)
+[2026-07-04 03:53:42 +0000] [1] [INFO] Using worker: gthread
+[2026-07-04 03:53:42 +0000] [7] [INFO] Booting worker with pid: 7
+[2026-07-04 03:53:43 +0000] [8] [INFO] Booting worker with pid: 8
+[2026-07-04 03:53:43 +0000] [9] [INFO] Booting worker with pid: 9
+{"level": "ERROR", "path": "/", "method": "GET", "ip": "192.168.65.1", "user_agent": "python-httpx/0.28.1", "exception": "NameError", "message": "name 'mode' is not defined", "traceback": "Traceback (most recent call last):\n  File \"/opt/venv/lib/python3.12/site-packages/django/core/handlers/base.py\", line 197, in _get_response\n    response = wrapped_callback(request, *callback_args, **callback_kwargs)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/sentry_sdk/integrations/django/views.py\", line 108, in sentry_wrapped_callback\n    return callback(request, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/tcf_website/views/home/pages.py\", line 31, in index\n    context.update(landing_spotlight_context(mode))\n                                             ^^^^\nNameError: name 'mode' is not defined\n"}
+Internal Server Error: /
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/sentry_sdk/integrations/django/views.py", line 108, in sentry_wrapped_callback
+    return callback(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/tcf_website/views/home/pages.py", line 31, in index
+    context.update(landing_spotlight_context(mode))
+                                             ^^^^
+NameError: name 'mode' is not defined
+{"level": "ERROR", "path": "/?mode=clubs", "method": "GET", "ip": "192.168.65.1", "user_agent": "python-httpx/0.28.1", "exception": "NameError", "message": "name 'mode' is not defined", "traceback": "Traceback (most recent call last):\n  File \"/opt/venv/lib/python3.12/site-packages/django/core/handlers/base.py\", line 197, in _get_response\n    response = wrapped_callback(request, *callback_args, **callback_kwargs)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/sentry_sdk/integrations/django/views.py\", line 108, in sentry_wrapped_callback\n    return callback(request, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/tcf_website/views/home/pages.py\", line 31, in index\n    context.update(landing_spotlight_context(mode))\n                                             ^^^^\nNameError: name 'mode' is not defined\n"}
+Internal Server Error: /
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/sentry_sdk/integrations/django/views.py", line 108, in sentry_wrapped_callback
+    return callback(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/tcf_website/views/home/pages.py", line 31, in index
+    context.update(landing_spotlight_context(mode))
+                                             ^^^^
+NameError: name 'mode' is not defined
+{"level": "ERROR", "path": "/", "method": "GET", "ip": "192.168.65.1", "user_agent": "python-httpx/0.28.1", "exception": "NameError", "message": "name 'mode' is not defined", "traceback": "Traceback (most recent call last):\n  File \"/opt/venv/lib/python3.12/site-packages/django/core/handlers/base.py\", line 197, in _get_response\n    response = wrapped_callback(request, *callback_args, **callback_kwargs)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/sentry_sdk/integrations/django/views.py\", line 108, in sentry_wrapped_callback\n    return callback(request, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/tcf_website/views/home/pages.py\", line 31, in index\n    context.update(landing_spotlight_context(mode))\n                                             ^^^^\nNameError: name 'mode' is not defined\n"}
+Internal Server Error: /
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/sentry_sdk/integrations/django/views.py", line 108, in sentry_wrapped_callback
+    return callback(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/tcf_website/views/home/pages.py", line 31, in index
+    context.update(landing_spotlight_context(mode))
+                                             ^^^^
+NameError: name 'mode' is not defined
+{"level": "ERROR", "path": "/?mode=clubs", "method": "GET", "ip": "192.168.65.1", "user_agent": "python-httpx/0.28.1", "exception": "NameError", "message": "name 'mode' is not defined", "traceback": "Traceback (most recent call last):\n  File \"/opt/venv/lib/python3.12/site-packages/django/core/handlers/base.py\", line 197, in _get_response\n    response = wrapped_callback(request, *callback_args, **callback_kwargs)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/sentry_sdk/integrations/django/views.py\", line 108, in sentry_wrapped_callback\n    return callback(request, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/tcf_website/views/home/pages.py\", line 31, in index\n    context.update(landing_spotlight_context(mode))\n                                             ^^^^\nNameError: name 'mode' is not defined\n"}
+Internal Server Error: /
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/sentry_sdk/integrations/django/views.py", line 108, in sentry_wrapped_callback
+    return callback(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/tcf_website/views/home/pages.py", line 31, in index
+    context.update(landing_spotlight_context(mode))
+                                             ^^^^
+NameError: name 'mode' is not defined
+{"level": "ERROR", "path": "/", "method": "GET", "ip": "192.168.65.1", "user_agent": "python-httpx/0.28.1", "exception": "NameError", "message": "name 'mode' is not defined", "traceback": "Traceback (most recent call last):\n  File \"/opt/venv/lib/python3.12/site-packages/django/core/handlers/base.py\", line 197, in _get_response\n    response = wrapped_callback(request, *callback_args, **callback_kwargs)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/sentry_sdk/integrations/django/views.py\", line 108, in sentry_wrapped_callback\n    return callback(request, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/tcf_website/views/home/pages.py\", line 31, in index\n    context.update(landing_spotlight_context(mode))\n                                             ^^^^\nNameError: name 'mode' is not defined\n"}
+Internal Server Error: /
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/sentry_sdk/integrations/django/views.py", line 108, in sentry_wrapped_callback
+    return callback(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/tcf_website/views/home/pages.py", line 31, in index
+    context.update(landing_spotlight_context(mode))
+                                             ^^^^
+NameError: name 'mode' is not defined
+{"level": "ERROR", "path": "/?mode=clubs", "method": "GET", "ip": "192.168.65.1", "user_agent": "python-httpx/0.28.1", "exception": "NameError", "message": "name 'mode' is not defined", "traceback": "Traceback (most recent call last):\n  File \"/opt/venv/lib/python3.12/site-packages/django/core/handlers/base.py\", line 197, in _get_response\n    response = wrapped_callback(request, *callback_args, **callback_kwargs)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/sentry_sdk/integrations/django/views.py\", line 108, in sentry_wrapped_callback\n    return callback(request, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/tcf_website/views/home/pages.py\", line 31, in index\n    context.update(landing_spotlight_context(mode))\n                                             ^^^^\nNameError: name 'mode' is not defined\n"}
+Internal Server Error: /
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/sentry_sdk/integrations/django/views.py", line 108, in sentry_wrapped_callback
+    return callback(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/tcf_website/views/home/pages.py", line 31, in index
+    context.update(landing_spotlight_context(mode))
+                                             ^^^^
+NameError: name 'mode' is not defined

@@ -1,0 +1,41 @@
+run_id: 20260704T034754-search-fielderror-500-w4
+fault_id: search-fielderror-500
+fault_class: code
+ground_truth: culprit_commit
+base_sha: 172effabd7f7dc6ccee9f2b69540835eacf77bf0
+release_sha: 489bf2f9421eab1c0335b6faeed018f228e12afe
+window:
+- sha: 07d6dcfbbf6cc7b4a0e9a8fe26840c730fb894d7
+  message: 'docs: expand browse view docstring with mode-dispatch details'
+  is_culprit: false
+  is_decoy: true
+- sha: 7f4a40f1639c68bffb31573fcb246c370ff62e9f
+  message: 'search: rename similarity annotation for clarity'
+  is_culprit: true
+  is_decoy: false
+- sha: d91ae7e2478cd96adbadc38175a3177001250633
+  message: 'docs: clarify parse_mode return tuple and default'
+  is_culprit: false
+  is_decoy: true
+- sha: 489bf2f9421eab1c0335b6faeed018f228e12afe
+  message: 'refactor: add return type hint to base context processor'
+  is_culprit: false
+  is_decoy: true
+culprit_sha: 7f4a40f1639c68bffb31573fcb246c370ff62e9f
+injected_at: 20260704T034754
+first_signal_at: null
+decoy_config:
+  size: 4
+  position: middle
+  seed: 1004
+  decoys:
+  - decoy-browse-docstring
+  - decoy-utils-docstring
+  - decoy-context-processor-typehint
+  traffic_5xx: 6
+fixture_paths:
+- fixtures/sentry/event_alert/20260704T034828520400-2f35d24d.json
+- fixtures/sentry/issue/20260704T034829315185-10f2071c.json
+log_paths:
+- fixtures/logs/20260704T034754-search-fielderror-500-w4-web.log
+deploy: fixtures/github/workflow_run/20260704T034754-e346dd9a.json

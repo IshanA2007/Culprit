@@ -1,0 +1,26 @@
+run_id: 20260704T043127-vote-duplicate-integrityerror-w1
+fault_id: vote-duplicate-integrityerror
+fault_class: code
+ground_truth: culprit_commit
+base_sha: 172effabd7f7dc6ccee9f2b69540835eacf77bf0
+release_sha: df68b8adb9d94c48ce36ffb9081f1cfeb03cdd7c
+window:
+- sha: df68b8adb9d94c48ce36ffb9081f1cfeb03cdd7c
+  message: 'reviews: simplify vote toggling logic'
+  is_culprit: true
+  is_decoy: false
+culprit_sha: df68b8adb9d94c48ce36ffb9081f1cfeb03cdd7c
+injected_at: 20260704T043127
+first_signal_at: null
+decoy_config:
+  size: 1
+  position: middle
+  seed: 2011
+  decoys: []
+  traffic_5xx: 3
+fixture_paths:
+- fixtures/sentry/event_alert/20260704T043207859040-9b166647.json
+- fixtures/sentry/issue/20260704T043206359020-f7b83051.json
+log_paths:
+- fixtures/logs/20260704T043127-vote-duplicate-integrityerror-w1-web.log
+deploy: fixtures/github/workflow_run/20260704T043127-c19820ba.json

@@ -1,0 +1,24 @@
+{
+  "received_at": "2026-07-04T04:04:05.908639+00:00",
+  "source": "sentry",
+  "resource": "issue",
+  "headers": {
+    "host": "gush-limelight-thing.ngrok-free.dev",
+    "user-agent": "sentry/26.7.0.dev0 (https://sentry.io)",
+    "content-length": "1652",
+    "accept": "*/*",
+    "accept-encoding": "gzip, deflate, br, zstd",
+    "baggage": "sentry-trace_id=071a5676c51745cb88d17f98d43f8348,sentry-sample_rand=0.754982,sentry-environment=prod,sentry-release=backend%40a50754879f41ff58e05f206fc95417e7b08ea2ab,sentry-public_key=98443d956c9e40989a0139756c121c34,sentry-transaction=sentry.issues.tasks.post_process.post_process_group,sentry-sample_rate=0.0,sentry-sampled=false",
+    "content-type": "application/json",
+    "request-id": "44f678006e484275b2c854d8607ccf2a",
+    "sentry-hook-resource": "issue",
+    "sentry-hook-signature": "0b68da44036686a3ab8b9bb7c3672e57e75c0c7b0858bf121d67746ff28e8cec",
+    "sentry-hook-timestamp": "1783137845",
+    "sentry-trace": "071a5676c51745cb88d17f98d43f8348-95c4467c4f98d793-0",
+    "x-forwarded-for": "104.155.149.19",
+    "x-forwarded-host": "gush-limelight-thing.ngrok-free.dev",
+    "x-forwarded-proto": "https"
+  },
+  "raw_body": "{\"action\":\"created\",\"installation\":{\"uuid\":\"f1a179a6-83c5-4ee2-a3d8-b9768e388d3a\"},\"data\":{\"issue\":{\"url\":\"https://sentry.io/api/0/organizations/logan-bradley/issues/7593102755/\",\"web_url\":\"https://logan-bradley.sentry.io/issues/7593102755/\",\"project_url\":\"https://logan-bradley.sentry.io/issues/?project=4511674797326336\",\"id\":\"7593102755\",\"shareId\":null,\"shortId\":\"CULPRIT-TCF-G\",\"title\":\"ConnectionError: Error -2 connecting to culprit_redis:6379. Name or service not known.\",\"culprit\":\"/search/\",\"permalink\":\"https://logan-bradley.sentry.io/issues/7593102755/\",\"logger\":null,\"level\":\"error\",\"status\":\"unresolved\",\"statusDetails\":{},\"substatus\":\"new\",\"isPublic\":false,\"platform\":\"python\",\"project\":{\"id\":\"4511674797326336\",\"name\":\"culprit-tcf\",\"slug\":\"culprit-tcf\",\"platform\":\"python-django\"},\"type\":\"error\",\"metadata\":{\"value\":\"Error -2 connecting to culprit_redis:6379. Name or service not known.\",\"type\":\"ConnectionError\",\"filename\":\"tcf_website/views/catalog/search.py\",\"function\":\"fetch_instructors\",\"in_app_frame_mix\":\"mixed\",\"sdk\":{\"name\":\"sentry.python.django\",\"name_normalized\":\"sentry.python\"},\"initial_priority\":75},\"numComments\":0,\"assignedTo\":null,\"isBookmarked\":false,\"isSubscribed\":false,\"subscriptionDetails\":null,\"hasSeen\":false,\"annotations\":[],\"issueType\":\"error\",\"issueCategory\":\"error\",\"priority\":\"high\",\"priorityLockedAt\":null,\"seerFixabilityScore\":null,\"seerAutofixLastTriggered\":null,\"seerExplorerAutofixLastTriggered\":null,\"isUnhandled\":true,\"count\":\"1\",\"userCount\":1,\"firstSeen\":\"2026-07-04T04:03:53.879122+00:00\",\"lastSeen\":\"2026-07-04T04:03:53.879122+00:00\"}},\"actor\":{\"type\":\"application\",\"id\":\"sentry\",\"name\":\"Sentry\"}}",
+  "scrubbed": true
+}

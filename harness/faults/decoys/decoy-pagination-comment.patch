@@ -1,0 +1,24 @@
+diff --git a/tcf_website/pagination.py b/tcf_website/pagination.py
+index fef86028..50d97e63 100644
+--- a/tcf_website/pagination.py
++++ b/tcf_website/pagination.py
+@@ -17,7 +17,18 @@ SECTION_DAY_CODE_TO_SECTIONTIME_FIELD = {
+ 
+ 
+ def paginate(items, page_number, per_page=10):
+-    """Paginate a queryset or list. Returns a Page object."""
++    """Paginate a queryset or list. Returns a Page object.
++
++    The ``try``/``except`` block guards against out-of-range ``page_number``
++    values coming from user-supplied query params:
++
++    - ``PageNotAnInteger`` (e.g. ``?page=abc`` or a missing value) falls back to
++      the first page.
++    - ``EmptyPage`` (a number past the end, e.g. ``?page=999``) falls back to the
++      last available page.
++
++    This keeps the view from raising on malformed pagination input.
++    """
+     paginator = Paginator(items, per_page)
+     try:
+         return paginator.page(page_number)

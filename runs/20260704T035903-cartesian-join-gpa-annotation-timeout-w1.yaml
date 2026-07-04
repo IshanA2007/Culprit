@@ -1,0 +1,24 @@
+run_id: 20260704T035903-cartesian-join-gpa-annotation-timeout-w1
+fault_id: cartesian-join-gpa-annotation-timeout
+fault_class: code
+ground_truth: culprit_commit
+base_sha: 172effabd7f7dc6ccee9f2b69540835eacf77bf0
+release_sha: bf597a99a12624bd9555c78e03dcc3336d7fe12b
+window:
+- sha: bf597a99a12624bd9555c78e03dcc3336d7fe12b
+  message: 'stats: annotate gpa and rating together'
+  is_culprit: true
+  is_decoy: false
+culprit_sha: bf597a99a12624bd9555c78e03dcc3336d7fe12b
+injected_at: 20260704T035903
+first_signal_at: null
+decoy_config:
+  size: 1
+  position: sole
+  seed: 1013
+  decoys: []
+  traffic_5xx: 0
+fixture_paths: []
+log_paths:
+- fixtures/logs/20260704T035903-cartesian-join-gpa-annotation-timeout-w1-web.log
+deploy: fixtures/github/workflow_run/20260704T035903-7dd03ad3.json

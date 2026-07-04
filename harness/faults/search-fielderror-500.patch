@@ -1,0 +1,13 @@
+diff --git a/tcf_website/views/catalog/search.py b/tcf_website/views/catalog/search.py
+index d7c24a8e..f86db9e8 100644
+--- a/tcf_website/views/catalog/search.py
++++ b/tcf_website/views/catalog/search.py
+@@ -62,7 +62,7 @@ def fetch_courses(query: str):
+             )
+         )
+         .filter(max_similarity__gte=_SIMILARITY_THRESHOLD)
+-        .order_by("-max_similarity")
++        .order_by("-similarity_score")
+     )
+ 
+ 

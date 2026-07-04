@@ -1,0 +1,42 @@
+run_id: 20260704T043209-vote-duplicate-integrityerror-w4
+fault_id: vote-duplicate-integrityerror
+fault_class: code
+ground_truth: culprit_commit
+base_sha: 172effabd7f7dc6ccee9f2b69540835eacf77bf0
+release_sha: b288f8ef7750374e10ee1f696c19a1e4dc3194ee
+window:
+- sha: 8dbd5e227ef00532eb6acb8540e6d28749e7f22f
+  message: 'docs: clarify pagination guard fallback behavior'
+  is_culprit: false
+  is_decoy: true
+- sha: dcd0b9d50eed9b3312d2490eec81730c97f1324d
+  message: 'reviews: simplify vote toggling logic'
+  is_culprit: true
+  is_decoy: false
+- sha: 3e14216fda8e1e501dc287561e39648dbcd41446
+  message: 'docs: expand course_view docstring to describe redirect and instructor
+    annotation'
+  is_culprit: false
+  is_decoy: true
+- sha: b288f8ef7750374e10ee1f696c19a1e4dc3194ee
+  message: 'docs: expand browse view docstring with mode-dispatch details'
+  is_culprit: false
+  is_decoy: true
+culprit_sha: dcd0b9d50eed9b3312d2490eec81730c97f1324d
+injected_at: 20260704T043209
+first_signal_at: null
+decoy_config:
+  size: 4
+  position: middle
+  seed: 2014
+  decoys:
+  - decoy-pagination-comment
+  - decoy-course-docstring
+  - decoy-browse-docstring
+  traffic_5xx: 3
+fixture_paths:
+- fixtures/sentry/event_alert/20260704T043249203618-71d8f233.json
+- fixtures/sentry/issue/20260704T043246536317-d0036fc8.json
+log_paths:
+- fixtures/logs/20260704T043209-vote-duplicate-integrityerror-w4-web.log
+deploy: fixtures/github/workflow_run/20260704T043209-395a9b91.json

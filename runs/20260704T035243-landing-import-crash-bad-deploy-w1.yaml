@@ -1,0 +1,26 @@
+run_id: 20260704T035243-landing-import-crash-bad-deploy-w1
+fault_id: landing-import-crash-bad-deploy
+fault_class: code
+ground_truth: culprit_commit
+base_sha: 172effabd7f7dc6ccee9f2b69540835eacf77bf0
+release_sha: ea56b1b1e61638c8ea9636ce1d83d11b95823612
+window:
+- sha: ea56b1b1e61638c8ea9636ce1d83d11b95823612
+  message: 'home: tidy landing view imports'
+  is_culprit: true
+  is_decoy: false
+culprit_sha: ea56b1b1e61638c8ea9636ce1d83d11b95823612
+injected_at: 20260704T035243
+first_signal_at: null
+decoy_config:
+  size: 1
+  position: sole
+  seed: 1007
+  decoys: []
+  traffic_5xx: 6
+fixture_paths:
+- fixtures/sentry/event_alert/20260704T035317938163-e5441de7.json
+- fixtures/sentry/issue/20260704T035316136326-570fa027.json
+log_paths:
+- fixtures/logs/20260704T035243-landing-import-crash-bad-deploy-w1-web.log
+deploy: fixtures/github/workflow_run/20260704T035243-2fc6ce01.json

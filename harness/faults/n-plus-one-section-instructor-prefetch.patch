@@ -1,0 +1,13 @@
+diff --git a/tcf_website/models/models.py b/tcf_website/models/models.py
+index 372caacd..1b9e69f5 100644
+--- a/tcf_website/models/models.py
++++ b/tcf_website/models/models.py
+@@ -91,7 +91,7 @@ class Department(models.Model):
+                 - CATALOG_YEAR_WINDOW,
+             }
+         return (
+-            Course.with_stats()
++            Course.objects.select_related("subdepartment")
+             .filter(**qs_filter)
+             .order_by("number", "subdepartment__name")
+         )

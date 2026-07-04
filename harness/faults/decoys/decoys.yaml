@@ -1,0 +1,18 @@
+# Decoy pool — benign, behavior-preserving commits used to pad deploy windows so
+# "blame the newest commit / the release" is a losing strategy. Each id has a
+# matching <id>.patch (verified to apply AND revert against culprit-harness).
+# Loaded by harness/decoys.py.
+
+decoys:
+  - id: decoy-utils-docstring
+    message: "docs: clarify parse_mode return tuple and default"
+  - id: decoy-context-processor-typehint
+    message: "refactor: add return type hint to base context processor"
+  - id: decoy-pagination-comment
+    message: "docs: clarify pagination guard fallback behavior"
+  - id: decoy-browse-docstring
+    message: "docs: expand browse view docstring with mode-dispatch details"
+  - id: decoy-course-docstring
+    message: "docs: expand course_view docstring to describe redirect and instructor annotation"
+  - id: decoy-health-comment
+    message: "docs: clarify /health short-circuit in health check middleware"

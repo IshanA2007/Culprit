@@ -1,0 +1,157 @@
+Starting Django Server with Gunicorn...
+[2026-07-04 03:48:13 +0000] [1] [INFO] Starting gunicorn 22.0.0
+[2026-07-04 03:48:13 +0000] [1] [INFO] Listening at: http://0.0.0.0:80 (1)
+[2026-07-04 03:48:13 +0000] [1] [INFO] Using worker: gthread
+[2026-07-04 03:48:13 +0000] [7] [INFO] Booting worker with pid: 7
+[2026-07-04 03:48:13 +0000] [8] [INFO] Booting worker with pid: 8
+[2026-07-04 03:48:13 +0000] [9] [INFO] Booting worker with pid: 9
+{"level": "ERROR", "path": "/search/?q=algorithms", "method": "GET", "ip": "192.168.65.1", "user_agent": "python-httpx/0.28.1", "exception": "FieldError", "message": "Cannot resolve keyword 'similarity_score' into field. Choices are: average_difficulty, average_gpa, average_rating, combined_mnemonic_number, coursegrade, courseinstructorgrade, description, disciplines, id, max_similarity, mnemonic, mnemonic_similarity, number, question, review, reviewllmsummary, section, semester_last_taught, semester_last_taught_id, subdepartment, subdepartment_id, title, title_similarity", "traceback": "Traceback (most recent call last):\n  File \"/opt/venv/lib/python3.12/site-packages/django/core/handlers/base.py\", line 197, in _get_response\n    response = wrapped_callback(request, *callback_args, **callback_kwargs)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/sentry_sdk/integrations/django/views.py\", line 108, in sentry_wrapped_callback\n    return callback(request, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/tcf_website/views/catalog/search.py\", line 229, in search\n    fetch_courses(query), request.GET.get(\"page\", 1), per_page=_SEARCH_PAGE_SIZE\n    ^^^^^^^^^^^^^^^^^^^^\n  File \"/app/tcf_website/views/catalog/search.py\", line 65, in fetch_courses\n    .order_by(\"-similarity_score\")\n     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/django/db/models/query.py\", line 1664, in order_by\n    obj.query.add_ordering(*field_names)\n  File \"/opt/venv/lib/python3.12/site-packages/django/db/models/sql/query.py\", line 2230, in add_ordering\n    self.names_to_path(item.split(LOOKUP_SEP), self.model._meta)\n  File \"/opt/venv/lib/python3.12/site-packages/django/db/models/sql/query.py\", line 1733, in names_to_path\n    raise FieldError(\ndjango.core.exceptions.FieldError: Cannot resolve keyword 'similarity_score' into field. Choices are: average_difficulty, average_gpa, average_rating, combined_mnemonic_number, coursegrade, courseinstructorgrade, description, disciplines, id, max_similarity, mnemonic, mnemonic_similarity, number, question, review, reviewllmsummary, section, semester_last_taught, semester_last_taught_id, subdepartment, subdepartment_id, title, title_similarity\n"}
+Internal Server Error: /search/
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/sentry_sdk/integrations/django/views.py", line 108, in sentry_wrapped_callback
+    return callback(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/tcf_website/views/catalog/search.py", line 229, in search
+    fetch_courses(query), request.GET.get("page", 1), per_page=_SEARCH_PAGE_SIZE
+    ^^^^^^^^^^^^^^^^^^^^
+  File "/app/tcf_website/views/catalog/search.py", line 65, in fetch_courses
+    .order_by("-similarity_score")
+     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/django/db/models/query.py", line 1664, in order_by
+    obj.query.add_ordering(*field_names)
+  File "/opt/venv/lib/python3.12/site-packages/django/db/models/sql/query.py", line 2230, in add_ordering
+    self.names_to_path(item.split(LOOKUP_SEP), self.model._meta)
+  File "/opt/venv/lib/python3.12/site-packages/django/db/models/sql/query.py", line 1733, in names_to_path
+    raise FieldError(
+django.core.exceptions.FieldError: Cannot resolve keyword 'similarity_score' into field. Choices are: average_difficulty, average_gpa, average_rating, combined_mnemonic_number, coursegrade, courseinstructorgrade, description, disciplines, id, max_similarity, mnemonic, mnemonic_similarity, number, question, review, reviewllmsummary, section, semester_last_taught, semester_last_taught_id, subdepartment, subdepartment_id, title, title_similarity
+{"level": "ERROR", "path": "/search/?q=CS", "method": "GET", "ip": "192.168.65.1", "user_agent": "python-httpx/0.28.1", "exception": "FieldError", "message": "Cannot resolve keyword 'similarity_score' into field. Choices are: average_difficulty, average_gpa, average_rating, combined_mnemonic_number, coursegrade, courseinstructorgrade, description, disciplines, id, max_similarity, mnemonic, mnemonic_similarity, number, question, review, reviewllmsummary, section, semester_last_taught, semester_last_taught_id, subdepartment, subdepartment_id, title, title_similarity", "traceback": "Traceback (most recent call last):\n  File \"/opt/venv/lib/python3.12/site-packages/django/core/handlers/base.py\", line 197, in _get_response\n    response = wrapped_callback(request, *callback_args, **callback_kwargs)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/sentry_sdk/integrations/django/views.py\", line 108, in sentry_wrapped_callback\n    return callback(request, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/tcf_website/views/catalog/search.py\", line 229, in search\n    fetch_courses(query), request.GET.get(\"page\", 1), per_page=_SEARCH_PAGE_SIZE\n    ^^^^^^^^^^^^^^^^^^^^\n  File \"/app/tcf_website/views/catalog/search.py\", line 65, in fetch_courses\n    .order_by(\"-similarity_score\")\n     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/django/db/models/query.py\", line 1664, in order_by\n    obj.query.add_ordering(*field_names)\n  File \"/opt/venv/lib/python3.12/site-packages/django/db/models/sql/query.py\", line 2230, in add_ordering\n    self.names_to_path(item.split(LOOKUP_SEP), self.model._meta)\n  File \"/opt/venv/lib/python3.12/site-packages/django/db/models/sql/query.py\", line 1733, in names_to_path\n    raise FieldError(\ndjango.core.exceptions.FieldError: Cannot resolve keyword 'similarity_score' into field. Choices are: average_difficulty, average_gpa, average_rating, combined_mnemonic_number, coursegrade, courseinstructorgrade, description, disciplines, id, max_similarity, mnemonic, mnemonic_similarity, number, question, review, reviewllmsummary, section, semester_last_taught, semester_last_taught_id, subdepartment, subdepartment_id, title, title_similarity\n"}
+Internal Server Error: /search/
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/sentry_sdk/integrations/django/views.py", line 108, in sentry_wrapped_callback
+    return callback(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/tcf_website/views/catalog/search.py", line 229, in search
+    fetch_courses(query), request.GET.get("page", 1), per_page=_SEARCH_PAGE_SIZE
+    ^^^^^^^^^^^^^^^^^^^^
+  File "/app/tcf_website/views/catalog/search.py", line 65, in fetch_courses
+    .order_by("-similarity_score")
+     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/django/db/models/query.py", line 1664, in order_by
+    obj.query.add_ordering(*field_names)
+  File "/opt/venv/lib/python3.12/site-packages/django/db/models/sql/query.py", line 2230, in add_ordering
+    self.names_to_path(item.split(LOOKUP_SEP), self.model._meta)
+  File "/opt/venv/lib/python3.12/site-packages/django/db/models/sql/query.py", line 1733, in names_to_path
+    raise FieldError(
+django.core.exceptions.FieldError: Cannot resolve keyword 'similarity_score' into field. Choices are: average_difficulty, average_gpa, average_rating, combined_mnemonic_number, coursegrade, courseinstructorgrade, description, disciplines, id, max_similarity, mnemonic, mnemonic_similarity, number, question, review, reviewllmsummary, section, semester_last_taught, semester_last_taught_id, subdepartment, subdepartment_id, title, title_similarity
+{"level": "ERROR", "path": "/search/?q=algorithms", "method": "GET", "ip": "192.168.65.1", "user_agent": "python-httpx/0.28.1", "exception": "FieldError", "message": "Cannot resolve keyword 'similarity_score' into field. Choices are: average_difficulty, average_gpa, average_rating, combined_mnemonic_number, coursegrade, courseinstructorgrade, description, disciplines, id, max_similarity, mnemonic, mnemonic_similarity, number, question, review, reviewllmsummary, section, semester_last_taught, semester_last_taught_id, subdepartment, subdepartment_id, title, title_similarity", "traceback": "Traceback (most recent call last):\n  File \"/opt/venv/lib/python3.12/site-packages/django/core/handlers/base.py\", line 197, in _get_response\n    response = wrapped_callback(request, *callback_args, **callback_kwargs)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/sentry_sdk/integrations/django/views.py\", line 108, in sentry_wrapped_callback\n    return callback(request, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/tcf_website/views/catalog/search.py\", line 229, in search\n    fetch_courses(query), request.GET.get(\"page\", 1), per_page=_SEARCH_PAGE_SIZE\n    ^^^^^^^^^^^^^^^^^^^^\n  File \"/app/tcf_website/views/catalog/search.py\", line 65, in fetch_courses\n    .order_by(\"-similarity_score\")\n     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/django/db/models/query.py\", line 1664, in order_by\n    obj.query.add_ordering(*field_names)\n  File \"/opt/venv/lib/python3.12/site-packages/django/db/models/sql/query.py\", line 2230, in add_ordering\n    self.names_to_path(item.split(LOOKUP_SEP), self.model._meta)\n  File \"/opt/venv/lib/python3.12/site-packages/django/db/models/sql/query.py\", line 1733, in names_to_path\n    raise FieldError(\ndjango.core.exceptions.FieldError: Cannot resolve keyword 'similarity_score' into field. Choices are: average_difficulty, average_gpa, average_rating, combined_mnemonic_number, coursegrade, courseinstructorgrade, description, disciplines, id, max_similarity, mnemonic, mnemonic_similarity, number, question, review, reviewllmsummary, section, semester_last_taught, semester_last_taught_id, subdepartment, subdepartment_id, title, title_similarity\n"}
+Internal Server Error: /search/
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/sentry_sdk/integrations/django/views.py", line 108, in sentry_wrapped_callback
+    return callback(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/tcf_website/views/catalog/search.py", line 229, in search
+    fetch_courses(query), request.GET.get("page", 1), per_page=_SEARCH_PAGE_SIZE
+    ^^^^^^^^^^^^^^^^^^^^
+  File "/app/tcf_website/views/catalog/search.py", line 65, in fetch_courses
+    .order_by("-similarity_score")
+     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/django/db/models/query.py", line 1664, in order_by
+    obj.query.add_ordering(*field_names)
+  File "/opt/venv/lib/python3.12/site-packages/django/db/models/sql/query.py", line 2230, in add_ordering
+    self.names_to_path(item.split(LOOKUP_SEP), self.model._meta)
+  File "/opt/venv/lib/python3.12/site-packages/django/db/models/sql/query.py", line 1733, in names_to_path
+    raise FieldError(
+django.core.exceptions.FieldError: Cannot resolve keyword 'similarity_score' into field. Choices are: average_difficulty, average_gpa, average_rating, combined_mnemonic_number, coursegrade, courseinstructorgrade, description, disciplines, id, max_similarity, mnemonic, mnemonic_similarity, number, question, review, reviewllmsummary, section, semester_last_taught, semester_last_taught_id, subdepartment, subdepartment_id, title, title_similarity
+{"level": "ERROR", "path": "/search/?q=CS", "method": "GET", "ip": "192.168.65.1", "user_agent": "python-httpx/0.28.1", "exception": "FieldError", "message": "Cannot resolve keyword 'similarity_score' into field. Choices are: average_difficulty, average_gpa, average_rating, combined_mnemonic_number, coursegrade, courseinstructorgrade, description, disciplines, id, max_similarity, mnemonic, mnemonic_similarity, number, question, review, reviewllmsummary, section, semester_last_taught, semester_last_taught_id, subdepartment, subdepartment_id, title, title_similarity", "traceback": "Traceback (most recent call last):\n  File \"/opt/venv/lib/python3.12/site-packages/django/core/handlers/base.py\", line 197, in _get_response\n    response = wrapped_callback(request, *callback_args, **callback_kwargs)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/sentry_sdk/integrations/django/views.py\", line 108, in sentry_wrapped_callback\n    return callback(request, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/tcf_website/views/catalog/search.py\", line 229, in search\n    fetch_courses(query), request.GET.get(\"page\", 1), per_page=_SEARCH_PAGE_SIZE\n    ^^^^^^^^^^^^^^^^^^^^\n  File \"/app/tcf_website/views/catalog/search.py\", line 65, in fetch_courses\n    .order_by(\"-similarity_score\")\n     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/django/db/models/query.py\", line 1664, in order_by\n    obj.query.add_ordering(*field_names)\n  File \"/opt/venv/lib/python3.12/site-packages/django/db/models/sql/query.py\", line 2230, in add_ordering\n    self.names_to_path(item.split(LOOKUP_SEP), self.model._meta)\n  File \"/opt/venv/lib/python3.12/site-packages/django/db/models/sql/query.py\", line 1733, in names_to_path\n    raise FieldError(\ndjango.core.exceptions.FieldError: Cannot resolve keyword 'similarity_score' into field. Choices are: average_difficulty, average_gpa, average_rating, combined_mnemonic_number, coursegrade, courseinstructorgrade, description, disciplines, id, max_similarity, mnemonic, mnemonic_similarity, number, question, review, reviewllmsummary, section, semester_last_taught, semester_last_taught_id, subdepartment, subdepartment_id, title, title_similarity\n"}
+Internal Server Error: /search/
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/sentry_sdk/integrations/django/views.py", line 108, in sentry_wrapped_callback
+    return callback(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/tcf_website/views/catalog/search.py", line 229, in search
+    fetch_courses(query), request.GET.get("page", 1), per_page=_SEARCH_PAGE_SIZE
+    ^^^^^^^^^^^^^^^^^^^^
+  File "/app/tcf_website/views/catalog/search.py", line 65, in fetch_courses
+    .order_by("-similarity_score")
+     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/django/db/models/query.py", line 1664, in order_by
+    obj.query.add_ordering(*field_names)
+  File "/opt/venv/lib/python3.12/site-packages/django/db/models/sql/query.py", line 2230, in add_ordering
+    self.names_to_path(item.split(LOOKUP_SEP), self.model._meta)
+  File "/opt/venv/lib/python3.12/site-packages/django/db/models/sql/query.py", line 1733, in names_to_path
+    raise FieldError(
+django.core.exceptions.FieldError: Cannot resolve keyword 'similarity_score' into field. Choices are: average_difficulty, average_gpa, average_rating, combined_mnemonic_number, coursegrade, courseinstructorgrade, description, disciplines, id, max_similarity, mnemonic, mnemonic_similarity, number, question, review, reviewllmsummary, section, semester_last_taught, semester_last_taught_id, subdepartment, subdepartment_id, title, title_similarity
+{"level": "ERROR", "path": "/search/?q=algorithms", "method": "GET", "ip": "192.168.65.1", "user_agent": "python-httpx/0.28.1", "exception": "FieldError", "message": "Cannot resolve keyword 'similarity_score' into field. Choices are: average_difficulty, average_gpa, average_rating, combined_mnemonic_number, coursegrade, courseinstructorgrade, description, disciplines, id, max_similarity, mnemonic, mnemonic_similarity, number, question, review, reviewllmsummary, section, semester_last_taught, semester_last_taught_id, subdepartment, subdepartment_id, title, title_similarity", "traceback": "Traceback (most recent call last):\n  File \"/opt/venv/lib/python3.12/site-packages/django/core/handlers/base.py\", line 197, in _get_response\n    response = wrapped_callback(request, *callback_args, **callback_kwargs)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/sentry_sdk/integrations/django/views.py\", line 108, in sentry_wrapped_callback\n    return callback(request, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/tcf_website/views/catalog/search.py\", line 229, in search\n    fetch_courses(query), request.GET.get(\"page\", 1), per_page=_SEARCH_PAGE_SIZE\n    ^^^^^^^^^^^^^^^^^^^^\n  File \"/app/tcf_website/views/catalog/search.py\", line 65, in fetch_courses\n    .order_by(\"-similarity_score\")\n     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/django/db/models/query.py\", line 1664, in order_by\n    obj.query.add_ordering(*field_names)\n  File \"/opt/venv/lib/python3.12/site-packages/django/db/models/sql/query.py\", line 2230, in add_ordering\n    self.names_to_path(item.split(LOOKUP_SEP), self.model._meta)\n  File \"/opt/venv/lib/python3.12/site-packages/django/db/models/sql/query.py\", line 1733, in names_to_path\n    raise FieldError(\ndjango.core.exceptions.FieldError: Cannot resolve keyword 'similarity_score' into field. Choices are: average_difficulty, average_gpa, average_rating, combined_mnemonic_number, coursegrade, courseinstructorgrade, description, disciplines, id, max_similarity, mnemonic, mnemonic_similarity, number, question, review, reviewllmsummary, section, semester_last_taught, semester_last_taught_id, subdepartment, subdepartment_id, title, title_similarity\n"}
+Internal Server Error: /search/
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/sentry_sdk/integrations/django/views.py", line 108, in sentry_wrapped_callback
+    return callback(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/tcf_website/views/catalog/search.py", line 229, in search
+    fetch_courses(query), request.GET.get("page", 1), per_page=_SEARCH_PAGE_SIZE
+    ^^^^^^^^^^^^^^^^^^^^
+  File "/app/tcf_website/views/catalog/search.py", line 65, in fetch_courses
+    .order_by("-similarity_score")
+     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/django/db/models/query.py", line 1664, in order_by
+    obj.query.add_ordering(*field_names)
+  File "/opt/venv/lib/python3.12/site-packages/django/db/models/sql/query.py", line 2230, in add_ordering
+    self.names_to_path(item.split(LOOKUP_SEP), self.model._meta)
+  File "/opt/venv/lib/python3.12/site-packages/django/db/models/sql/query.py", line 1733, in names_to_path
+    raise FieldError(
+django.core.exceptions.FieldError: Cannot resolve keyword 'similarity_score' into field. Choices are: average_difficulty, average_gpa, average_rating, combined_mnemonic_number, coursegrade, courseinstructorgrade, description, disciplines, id, max_similarity, mnemonic, mnemonic_similarity, number, question, review, reviewllmsummary, section, semester_last_taught, semester_last_taught_id, subdepartment, subdepartment_id, title, title_similarity
+{"level": "ERROR", "path": "/search/?q=CS", "method": "GET", "ip": "192.168.65.1", "user_agent": "python-httpx/0.28.1", "exception": "FieldError", "message": "Cannot resolve keyword 'similarity_score' into field. Choices are: average_difficulty, average_gpa, average_rating, combined_mnemonic_number, coursegrade, courseinstructorgrade, description, disciplines, id, max_similarity, mnemonic, mnemonic_similarity, number, question, review, reviewllmsummary, section, semester_last_taught, semester_last_taught_id, subdepartment, subdepartment_id, title, title_similarity", "traceback": "Traceback (most recent call last):\n  File \"/opt/venv/lib/python3.12/site-packages/django/core/handlers/base.py\", line 197, in _get_response\n    response = wrapped_callback(request, *callback_args, **callback_kwargs)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/sentry_sdk/integrations/django/views.py\", line 108, in sentry_wrapped_callback\n    return callback(request, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/tcf_website/views/catalog/search.py\", line 229, in search\n    fetch_courses(query), request.GET.get(\"page\", 1), per_page=_SEARCH_PAGE_SIZE\n    ^^^^^^^^^^^^^^^^^^^^\n  File \"/app/tcf_website/views/catalog/search.py\", line 65, in fetch_courses\n    .order_by(\"-similarity_score\")\n     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/venv/lib/python3.12/site-packages/django/db/models/query.py\", line 1664, in order_by\n    obj.query.add_ordering(*field_names)\n  File \"/opt/venv/lib/python3.12/site-packages/django/db/models/sql/query.py\", line 2230, in add_ordering\n    self.names_to_path(item.split(LOOKUP_SEP), self.model._meta)\n  File \"/opt/venv/lib/python3.12/site-packages/django/db/models/sql/query.py\", line 1733, in names_to_path\n    raise FieldError(\ndjango.core.exceptions.FieldError: Cannot resolve keyword 'similarity_score' into field. Choices are: average_difficulty, average_gpa, average_rating, combined_mnemonic_number, coursegrade, courseinstructorgrade, description, disciplines, id, max_similarity, mnemonic, mnemonic_similarity, number, question, review, reviewllmsummary, section, semester_last_taught, semester_last_taught_id, subdepartment, subdepartment_id, title, title_similarity\n"}
+Internal Server Error: /search/
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/sentry_sdk/integrations/django/views.py", line 108, in sentry_wrapped_callback
+    return callback(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/tcf_website/views/catalog/search.py", line 229, in search
+    fetch_courses(query), request.GET.get("page", 1), per_page=_SEARCH_PAGE_SIZE
+    ^^^^^^^^^^^^^^^^^^^^
+  File "/app/tcf_website/views/catalog/search.py", line 65, in fetch_courses
+    .order_by("-similarity_score")
+     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/django/db/models/query.py", line 1664, in order_by
+    obj.query.add_ordering(*field_names)
+  File "/opt/venv/lib/python3.12/site-packages/django/db/models/sql/query.py", line 2230, in add_ordering
+    self.names_to_path(item.split(LOOKUP_SEP), self.model._meta)
+  File "/opt/venv/lib/python3.12/site-packages/django/db/models/sql/query.py", line 1733, in names_to_path
+    raise FieldError(
+django.core.exceptions.FieldError: Cannot resolve keyword 'similarity_score' into field. Choices are: average_difficulty, average_gpa, average_rating, combined_mnemonic_number, coursegrade, courseinstructorgrade, description, disciplines, id, max_similarity, mnemonic, mnemonic_similarity, number, question, review, reviewllmsummary, section, semester_last_taught, semester_last_taught_id, subdepartment, subdepartment_id, title, title_similarity

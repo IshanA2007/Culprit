@@ -1,0 +1,40 @@
+[project]
+name = "culprit-harness"
+version = "0.1.0"
+description = "Fault-injection harness for Culprit — forks theCourseForum2, injects labeled faults, and records real Sentry/GitHub webhook payloads as a labeled eval corpus."
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "fastapi>=0.115,<0.116",
+    "uvicorn>=0.34,<0.35",
+    "httpx>=0.28,<0.29",
+    "pyyaml>=6.0,<7",
+]
+
+[project.scripts]
+culprit-harness = "harness.cli:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3,<9",
+    "ruff>=0.9.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["harness"]
+
+# Ruff config mirrors theCourseForum2 (pyproject.toml:41-57), minus the
+# Django-specific DJ rules — Culprit is FastAPI, not Django.
+[tool.ruff]
+target-version = "py312"
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I", "W", "UP", "B", "SIM"]
+ignore = ["SIM102", "SIM108", "SIM114"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

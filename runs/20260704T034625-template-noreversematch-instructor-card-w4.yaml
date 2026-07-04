@@ -1,0 +1,42 @@
+run_id: 20260704T034625-template-noreversematch-instructor-card-w4
+fault_id: template-noreversematch-instructor-card
+fault_class: code
+ground_truth: culprit_commit
+base_sha: 172effabd7f7dc6ccee9f2b69540835eacf77bf0
+release_sha: 2126ec08b659479e2231601ccf2683e5a034a222
+window:
+- sha: 2f2c2261d345bf96bf603e193b6f8f636eec0298
+  message: 'docs: expand course_view docstring to describe redirect and instructor
+    annotation'
+  is_culprit: false
+  is_decoy: true
+- sha: e0a0802929d77eecf8bf2e729b5c7e2a6db5fb81
+  message: 'refactor: rename instructor route, update templates'
+  is_culprit: true
+  is_decoy: false
+- sha: 4d4cddef488fa583c79dc5138a75fb2a88df6fdc
+  message: 'docs: clarify /health short-circuit in health check middleware'
+  is_culprit: false
+  is_decoy: true
+- sha: 2126ec08b659479e2231601ccf2683e5a034a222
+  message: 'docs: expand browse view docstring with mode-dispatch details'
+  is_culprit: false
+  is_decoy: true
+culprit_sha: e0a0802929d77eecf8bf2e729b5c7e2a6db5fb81
+injected_at: 20260704T034625
+first_signal_at: null
+decoy_config:
+  size: 4
+  position: middle
+  seed: 1002
+  decoys:
+  - decoy-course-docstring
+  - decoy-health-comment
+  - decoy-browse-docstring
+  traffic_5xx: 3
+fixture_paths:
+- fixtures/sentry/event_alert/20260704T034702858602-520f47b6.json
+- fixtures/sentry/issue/20260704T034701899798-1bcda19c.json
+log_paths:
+- fixtures/logs/20260704T034625-template-noreversematch-instructor-card-w4-web.log
+deploy: fixtures/github/workflow_run/20260704T034625-e5d07295.json

@@ -1,0 +1,279 @@
+# Fault manifest — the labeled catalog. Schema + validation: harness/manifest.py
+#
+# 9 code faults (ground_truth=culprit_commit, carry a .patch, verified to apply
+# AND revert against tCF @ b8d3fe1c), 3 infra faults (ground_truth=abstain,
+# docker_action against the harness containers), 1 benign-deploy baseline
+# (ground_truth=no_incident). passes_tcf_tests is the authoring agents' verdict
+# on whether tCF's own `manage.py test` would catch the patch.
+#
+# trigger.requests paths using real object ids (course/instructor/dept/review)
+# are representative — the scenario runner (Task 7) resolves live ids from the
+# seeded DB. window.sizes records each code fault at a 1-commit and a 4-commit
+# window; culprit_positions keep the culprit off the window head (anti-leakage).
+
+faults:
+  # ---- code faults (Sentry-visible) ---------------------------------------
+  - id: template-noreversematch-instructor-card
+    category: template crash
+    fault_class: code
+    commit_message: "refactor: rename instructor route, update templates"
+    ground_truth: culprit_commit
+    expected_signal: event_alert
+    expected_symptom: "NoReverseMatch 500 on every course-instructor page (missed a template {% url %} during a route rename)"
+    sentry_visible: true
+    requires_auth: false
+    passes_tcf_tests: false
+    patch: template-noreversematch-instructor-card.patch
+    trigger:
+      throttle_seconds: 2.0
+      requests:
+        - {path: "/course/1/4019/", method: GET}
+    window:
+      sizes: [1, 4]
+      culprit_positions: [middle, tail]
+    notes: "tCF's test_schedule_semester GETs this page and asserts 200 -> would catch it."
+
+  - id: search-fielderror-500
+    category: code crash
+    fault_class: code
+    commit_message: "search: rename similarity annotation for clarity"
+    ground_truth: culprit_commit
+    expected_signal: event_alert
+    expected_symptom: "FieldError 500 on every search + autocomplete keystroke (order_by references a non-existent field)"
+    sentry_visible: true
+    requires_auth: false
+    passes_tcf_tests: false
+    patch: search-fielderror-500.patch
+    trigger:
+      throttle_seconds: 2.0
+      requests:
+        - {path: "/search/?q=algorithms", method: GET}
+        - {path: "/search/?q=CS", method: GET}
+    window:
+      sizes: [1, 4]
+      culprit_positions: [middle, tail]
+    notes: "tCF's test_search asserts 200 -> would catch it. Documented as 'requires a test gap to ship'."
+
+  - id: vote-duplicate-integrityerror
+    category: endpoint 500
+    fault_class: code
+    commit_message: "reviews: simplify vote toggling logic"
+    ground_truth: culprit_commit
+    expected_signal: event_alert
+    expected_symptom: "IntegrityError 500 on a vote direction-switch by a user who already voted (intermittent, user-state dependent)"
+    sentry_visible: true
+    requires_auth: true
+    passes_tcf_tests: true
+    patch: vote-duplicate-integrityerror.patch
+    trigger:
+      throttle_seconds: 2.0
+      requests:
+        - {path: "/reviews/1/upvote/", method: POST}
+        - {path: "/reviews/1/downvote/", method: POST}
+    window:
+      sizes: [1, 4]
+      culprit_positions: [middle, tail]
+    notes: "@login_required + @require_POST + CSRF. harness/auth.py mints a session AND a valid CSRF cookie/header pair (no tCF page sets the csrftoken cookie on a plain GET, so it can't be scraped). The driver upvotes then downvotes review 1: the patch removed the delete-prior-vote logic, so the second (different-value) vote hits the unique (user,review) constraint -> IntegrityError -> 500."
+
+  - id: landing-import-crash-bad-deploy
+    category: bad deploy
+    fault_class: code
+    commit_message: "home: tidy landing view imports"
+    ground_truth: culprit_commit
+    expected_signal: event_alert
+    expected_symptom: "Landing/home page 500s but /health still returns ok (looks infra-y)"
+    sentry_visible: true
+    requires_auth: false
+    passes_tcf_tests: false
+    patch: landing-import-crash-bad-deploy.patch
+    trigger:
+      throttle_seconds: 2.0
+      requests:
+        - {path: "/", method: GET}
+        - {path: "/?mode=clubs", method: GET}
+    window:
+      sizes: [1, 4]
+      culprit_positions: [head, middle]
+    notes: "Health middleware short-circuits before view resolution, so /health stays green — the 'looks infrastructural' case."
+
+  - id: bad-migration-drop-semester-season
+    category: bad migration
+    fault_class: code
+    commit_message: "migrations: drop redundant semester season column"
+    ground_truth: culprit_commit
+    expected_signal: event_alert
+    expected_symptom: "ProgrammingError (undefined column) 500s on every course page after the release-task migrate applies — Semester.latest() SELECTs the dropped column view-side (context processor + course-instructor view)"
+    sentry_visible: true
+    requires_auth: false
+    passes_tcf_tests: false
+    patch: bad-migration-drop-semester-season.patch
+    trigger:
+      throttle_seconds: 2.0
+      requests:
+        - {path: "/course/1/4019/", method: GET}
+    window:
+      sizes: [1, 4]
+      culprit_positions: [middle, tail]
+    notes: "New migration file — only bites after the release task runs migrate (decision 7). Reproduces prod's migrate-applied-but-deploy-halted skew. Drops Semester.season, which Semester.latest() SELECTs in the view + base context processor (runs on every HTML page) — un-swallowed, so a plain course-page GET 500s. (An earlier version dropped Review.email, but Django's {% for %} resolves the review queryset with ignore_failures=True and swallowed the error.)"
+
+  # ---- code faults (silent to Sentry — latency / behavior only) ------------
+  - id: n-plus-one-section-instructor-prefetch
+    category: N+1 latency
+    fault_class: code
+    commit_message: "courses: inline section lookup"
+    ground_truth: culprit_commit
+    expected_signal: logs
+    expected_symptom: "Extra queries / latency only — NO Sentry event"
+    sentry_visible: false
+    requires_auth: false
+    passes_tcf_tests: true
+    patch: n-plus-one-section-instructor-prefetch.patch
+    trigger:
+      throttle_seconds: 2.0
+      requests:
+        - {path: "/department/1/", method: GET}
+    window:
+      sizes: [1, 4]
+      culprit_positions: [middle, tail]
+    notes: "Silent fault — excluded from Sentry top-k until M3 SNS ingest; run record still carries culprit ground truth."
+
+  - id: cartesian-join-gpa-annotation-timeout
+    category: N+1/timeout
+    fault_class: code
+    commit_message: "stats: annotate gpa and rating together"
+    ground_truth: culprit_commit
+    expected_signal: logs
+    expected_symptom: "Worker-timeout 502/504 (gunicorn --timeout 120), no Sentry event"
+    sentry_visible: false
+    requires_auth: false
+    passes_tcf_tests: false
+    patch: cartesian-join-gpa-annotation-timeout.patch
+    trigger:
+      throttle_seconds: 5.0
+      requests:
+        - {path: "/search/?q=CS", method: GET}
+        - {path: "/browse/", method: GET}
+    window:
+      sizes: [1, 4]
+      culprit_positions: [middle, tail]
+    notes: "Row-explosion cartesian join blows the 120s gunicorn timeout — captured via gunicorn stderr (WORKER TIMEOUT), not Sentry."
+
+  - id: search-silent-zero-results
+    category: silent regression
+    fault_class: code
+    commit_message: "search: tighten similarity threshold"
+    ground_truth: culprit_commit
+    expected_signal: logs
+    expected_symptom: "Search returns zero/near-zero results — zero errors, behavior change only"
+    sentry_visible: false
+    requires_auth: false
+    passes_tcf_tests: true
+    patch: search-silent-zero-results.patch
+    trigger:
+      throttle_seconds: 2.0
+      requests:
+        - {path: "/search/?q=software", method: GET}
+    window:
+      sizes: [1, 4]
+      culprit_positions: [middle, tail]
+    notes: "No exception — tests abstention from error-reasoning. Nothing for Sentry to see."
+
+  - id: bad-migration-drop-trigram-gin-indexes
+    category: bad migration (perf)
+    fault_class: code
+    commit_message: "migrations: drop redundant search indexes"
+    ground_truth: culprit_commit
+    expected_signal: logs
+    expected_symptom: "Search latency 10-100x (sequential scans) — no error, just slow"
+    sentry_visible: false
+    requires_auth: false
+    passes_tcf_tests: true
+    patch: bad-migration-drop-trigram-gin-indexes.patch
+    trigger:
+      throttle_seconds: 2.0
+      requests:
+        - {path: "/search/?q=algorithms", method: GET}
+    window:
+      sizes: [1, 4]
+      culprit_positions: [middle, tail]
+    notes: "Correct results, GIN trigram indexes gone -> seq scans. Silent to Sentry; latency captured via logs/timing."
+
+  # ---- infra faults (ground_truth = abstain; run on a fresh benign release) -
+  - id: redis-down
+    category: infra (cache)
+    fault_class: infra
+    commit_message: null
+    ground_truth: abstain
+    expected_signal: event_alert
+    expected_symptom: "ConnectionError flood across all transactions; the recent deploy is innocent"
+    sentry_visible: true
+    requires_auth: false
+    docker_action: "docker stop culprit_redis"
+    trigger:
+      throttle_seconds: 2.0
+      requests:
+        - {path: "/course/1/4019/", method: GET}
+        - {path: "/search/?q=algorithms", method: GET}
+    window:
+      sizes: [3]
+      culprit_positions: [none]
+    notes: "cachalot wraps every ORM read with no IGNORE_EXCEPTIONS -> near-every page 500s. Abstain: decline to blame the (benign) window. Restore: docker start culprit_redis."
+
+  - id: db-stopped
+    category: infra (database)
+    fault_class: infra
+    commit_message: null
+    ground_truth: abstain
+    expected_signal: event_alert
+    expected_symptom: "OperationalError storm (stop) or silent 504 hang (pause)"
+    sentry_visible: true
+    requires_auth: false
+    docker_action: "docker stop culprit_db"
+    trigger:
+      throttle_seconds: 2.0
+      requests:
+        - {path: "/course/1/4019/", method: GET}
+    window:
+      sizes: [3]
+      culprit_positions: [none]
+    notes: "Restore: docker start culprit_db (+ wait healthy). Abstain — no code culprit."
+
+  - id: gunicorn-worker-oom
+    category: infra (resource)
+    fault_class: infra
+    commit_message: null
+    ground_truth: abstain
+    expected_signal: logs
+    expected_symptom: "Sporadic 502s, worker SIGKILL, ZERO Sentry events (worker dies before reporting)"
+    sentry_visible: false
+    requires_auth: false
+    docker_action: "docker update --memory=256m --memory-swap=256m culprit_web"
+    trigger:
+      throttle_seconds: 1.0
+      requests:
+        - {path: "/search/?q=CS", method: GET}
+        - {path: "/browse/", method: GET}
+    window:
+      sizes: [3]
+      culprit_positions: [none]
+    notes: "Needs heavy traffic (high repeats) to trip the OOM killer. Silent to Sentry -> the SNS/CloudWatch case (deferred to M3). Restore: docker update --memory=2g culprit_web + recreate."
+
+  # ---- negative control ----------------------------------------------------
+  - id: benign-deploy-baseline
+    category: negative control
+    fault_class: baseline
+    commit_message: null
+    ground_truth: no_incident
+    expected_signal: none
+    expected_symptom: "No incident, no culprit — a normal deploy of decoy-only commits"
+    sentry_visible: false
+    requires_auth: false
+    trigger:
+      throttle_seconds: 2.0
+      requests:
+        - {path: "/course/1/4019/", method: GET}
+        - {path: "/search/?q=algorithms", method: GET}
+    window:
+      sizes: [4]
+      culprit_positions: [none]
+    notes: "Decoy-only window, deployed normally, normal traffic, no fault. Anchors the false-positive rate — without it the corpus is all-guilty."
