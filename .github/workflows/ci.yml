@@ -1,4 +1,7 @@
 # Mirrors theCourseForum2's CI shape (astral-sh/setup-uv@v5, py3.12, uv sync --frozen).
+# The test job runs against a Postgres 17 service (the service is Postgres-backed);
+# secret/network-gated tests (Sentry/GitHub/Discord/Anthropic + the live fork reads)
+# skip cleanly in CI, which has none of those — the M1 convention.
 name: Continuous Integration
 
 on:
@@ -34,6 +37,27 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: culprit
+          POSTGRES_PASSWORD: culprit
+          POSTGRES_DB: culprit
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U culprit -d culprit"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
+    env:
+      DATABASE_URL: postgresql+asyncpg://culprit:culprit@localhost:5432/culprit
+      CULPRIT_TEST_ADMIN_URL: postgresql+asyncpg://culprit:culprit@localhost:5432/postgres
+      CULPRIT_TEST_DATABASE_URL: postgresql+asyncpg://culprit:culprit@localhost:5432/culprit_test
+
     steps:
       - uses: actions/checkout@v4
 
@@ -45,6 +69,9 @@ jobs:
 
       - name: Install dependencies
         run: uv sync --frozen --group dev
+
+      - name: Migrate (validate the Alembic baseline)
+        run: uv run culprit migrate
 
       - name: Pytest
         run: uv run pytest

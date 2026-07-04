@@ -8,14 +8,22 @@ dependencies = [
     "uvicorn>=0.34,<0.35",
     "httpx>=0.28,<0.29",
     "pyyaml>=6.0,<7",
+    "sqlalchemy[asyncio]>=2.0,<2.1",
+    "asyncpg>=0.31,<0.32",
+    "alembic>=1.14,<2",
+    "pydantic-settings>=2.7,<3",
+    "anthropic>=0.40,<1",
+    "python-dateutil>=2.9,<3",
 ]
 
 [project.scripts]
 culprit-harness = "harness.cli:main"
+culprit = "culprit.cli:main"
 
 [dependency-groups]
 dev = [
     "pytest>=8.3,<9",
+    "pytest-asyncio>=1.0,<2",
     "ruff>=0.9.0",
 ]
 
@@ -24,7 +32,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["harness"]
+packages = ["harness", "culprit"]
 
 # Ruff config mirrors theCourseForum2 (pyproject.toml:41-57), minus the
 # Django-specific DJ rules — Culprit is FastAPI, not Django.
@@ -38,3 +46,4 @@ ignore = ["SIM102", "SIM108", "SIM114"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+asyncio_mode = "auto"

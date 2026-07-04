@@ -28,3 +28,6 @@ db/*.sql
 
 # Scratch
 scratch/
+
+# GitHub API response cache (network evidence)
+.cache/
