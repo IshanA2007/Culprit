@@ -73,7 +73,7 @@ faults:
     window:
       sizes: [1, 4]
       culprit_positions: [middle, tail]
-    notes: "@login_required — needs harness/auth.py session + CSRF + pre-seeded opposite-vote state. Existing tests use a fresh-vote user, so the suite stays green."
+    notes: "@login_required + @require_POST + CSRF. harness/auth.py mints a session AND a valid CSRF cookie/header pair (no tCF page sets the csrftoken cookie on a plain GET, so it can't be scraped). The driver upvotes then downvotes review 1: the patch removed the delete-prior-vote logic, so the second (different-value) vote hits the unique (user,review) constraint -> IntegrityError -> 500."
 
   - id: landing-import-crash-bad-deploy
     category: bad deploy
@@ -96,17 +96,17 @@ faults:
       culprit_positions: [head, middle]
     notes: "Health middleware short-circuits before view resolution, so /health stays green — the 'looks infrastructural' case."
 
-  - id: bad-migration-drop-review-email-column
+  - id: bad-migration-drop-semester-season
     category: bad migration
     fault_class: code
-    commit_message: "migrations: drop unused column"
+    commit_message: "migrations: drop redundant semester season column"
     ground_truth: culprit_commit
     expected_signal: event_alert
-    expected_symptom: "ProgrammingError (undefined column) 500s on course-instructor pages after the release-task migrate applies"
+    expected_symptom: "ProgrammingError (undefined column) 500s on every course page after the release-task migrate applies — Semester.latest() SELECTs the dropped column view-side (context processor + course-instructor view)"
     sentry_visible: true
     requires_auth: false
     passes_tcf_tests: false
-    patch: bad-migration-drop-review-email-column.patch
+    patch: bad-migration-drop-semester-season.patch
     trigger:
       throttle_seconds: 2.0
       requests:
@@ -114,7 +114,7 @@ faults:
     window:
       sizes: [1, 4]
       culprit_positions: [middle, tail]
-    notes: "New migration file — only bites after the release task runs migrate (decision 7). Reproduces prod's migrate-applied-but-deploy-halted skew."
+    notes: "New migration file — only bites after the release task runs migrate (decision 7). Reproduces prod's migrate-applied-but-deploy-halted skew. Drops Semester.season, which Semester.latest() SELECTs in the view + base context processor (runs on every HTML page) — un-swallowed, so a plain course-page GET 500s. (An earlier version dropped Review.email, but Django's {% for %} resolves the review queryset with ignore_failures=True and swallowed the error.)"
 
   # ---- code faults (silent to Sentry — latency / behavior only) ------------
   - id: n-plus-one-section-instructor-prefetch

@@ -1,12 +1,14 @@
 """Authenticated-session provisioning without Cognito.
 
 A few faults (e.g. ``vote-duplicate-integrityerror``) live behind
-``@login_required`` views. tCF's real auth is Cognito (email OTP), which the
-local harness can't drive. Instead we mint a Django session directly via
-``manage.py shell`` inside the running web container: get-or-create a User, build
-an authenticated session row, and hand the traffic driver the ``sessionid``
-cookie. The CSRF token is obtained separately by the traffic driver (a GET that
-sets the ``csrftoken`` cookie), since CSRF is double-submit, not session-bound.
+``@login_required`` + ``@require_POST`` views with CSRF protection. tCF's real
+auth is Cognito (email OTP), which the local harness can't drive. Instead we
+mint everything directly via ``manage.py shell`` inside the running web
+container: get-or-create a User, build an authenticated session row, AND mint a
+matching CSRF cookie/header pair (no page in tCF sets the ``csrftoken`` cookie on
+a plain GET, so the traffic driver can't scrape one — we generate a valid pair
+with ``get_token`` instead). The driver sends the ``sessionid`` + ``csrftoken``
+cookies and the ``X-CSRFToken`` header.
 """
 
 from __future__ import annotations
@@ -18,12 +20,15 @@ from dataclasses import dataclass
 from harness.config import HARNESS_WEB_CONTAINER
 
 # Runs inside the web container. Works whether the custom User keys on username
-# or email (USERNAME_FIELD), and stamps the ModelBackend auth session keys.
+# or email (USERNAME_FIELD), stamps the ModelBackend auth session keys, and mints
+# a consistent CSRF cookie(secret)/header(masked token) pair.
 _SHELL_SNIPPET = """
 import json
 from importlib import import_module
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.middleware.csrf import get_token
+from django.test import RequestFactory
 
 User = get_user_model()
 uf = User.USERNAME_FIELD
@@ -44,10 +49,19 @@ s["_auth_user_id"] = str(user.pk)
 s["_auth_user_backend"] = "django.contrib.auth.backends.ModelBackend"
 s["_auth_user_hash"] = user.get_session_auth_hash()
 s.create()
+
+# Mint a matching CSRF pair: the cookie holds the secret, the header holds a
+# masked token derived from it; Django validates one against the other.
+_req = RequestFactory().get("/")
+_csrf_header = get_token(_req)
+_csrf_cookie = _req.META.get("CSRF_COOKIE", "")
+
 print("CULPRIT_SESSION=" + json.dumps({
     "sessionid": s.session_key,
     "username": str(getattr(user, uf)),
     "user_id": user.pk,
+    "csrf_cookie": _csrf_cookie,
+    "csrf_token": _csrf_header,
 }))
 """
 
@@ -57,29 +71,21 @@ class Session:
     sessionid: str
     username: str
     user_id: int
-    csrf_token: str = ""
+    csrf_cookie: str = ""  # value of the csrftoken COOKIE (the secret)
+    csrf_token: str = ""  # value for the X-CSRFToken HEADER (masked token)
 
     @property
     def cookies(self) -> dict[str, str]:
         c = {"sessionid": self.sessionid}
-        if self.csrf_token:
-            c["csrftoken"] = self.csrf_token
+        if self.csrf_cookie:
+            c["csrftoken"] = self.csrf_cookie
         return c
 
 
 def provision_session(container: str = HARNESS_WEB_CONTAINER) -> Session:
-    """Create a logged-in Django session in the harness DB, bypassing Cognito."""
+    """Create a logged-in Django session + CSRF pair, bypassing Cognito."""
     proc = subprocess.run(
-        [
-            "docker",
-            "exec",
-            container,
-            "python",
-            "manage.py",
-            "shell",
-            "-c",
-            _SHELL_SNIPPET,
-        ],
+        ["docker", "exec", container, "python", "manage.py", "shell", "-c", _SHELL_SNIPPET],
         text=True,
         capture_output=True,
         check=True,
@@ -94,5 +100,9 @@ def provision_session(container: str = HARNESS_WEB_CONTAINER) -> Session:
         )
     data = json.loads(line.removeprefix("CULPRIT_SESSION="))
     return Session(
-        sessionid=data["sessionid"], username=data["username"], user_id=data["user_id"]
+        sessionid=data["sessionid"],
+        username=data["username"],
+        user_id=data["user_id"],
+        csrf_cookie=data.get("csrf_cookie", ""),
+        csrf_token=data.get("csrf_token", ""),
     )

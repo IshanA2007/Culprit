@@ -258,16 +258,12 @@ def run_scenario(
                 f"web reports release {baked!r}, expected {window.release_sha!r}"
             )
 
-        # 7. auth session if needed
+        # 7. auth session if needed (session + minted CSRF cookie/header pair)
         cookies, csrf = None, None
         if fault.requires_auth:
             sess = provision_session()
             cookies = sess.cookies
-            with httpx.Client(
-                base_url=f"http://localhost:{config.HARNESS_HTTP_PORT}"
-            ) as c:
-                c.get("/", cookies=cookies)
-                csrf = c.cookies.get("csrftoken")
+            csrf = sess.csrf_token
 
         # 8. drive traffic / execute infra action
         if fault.fault_class is FaultClass.INFRA and fault.docker_action:
