@@ -13,7 +13,7 @@ from datetime import UTC, datetime, timedelta
 from sqlalchemy import func, select
 
 from culprit.models import Deploy, Incident, Postmortem, Signal
-from culprit.postmortem import build_postmortem, draft_postmortem
+from culprit.postmortem import build_postmortem, draft_postmortem, publish_postmortem
 
 _OPENED = datetime(2026, 7, 4, 3, 45, tzinfo=UTC)
 _RESOLVED = datetime(2026, 7, 4, 4, 10, tzinfo=UTC)
@@ -249,3 +249,49 @@ async def test_draft_postmortem_persists_one_row_idempotently(db_session):
         await db_session.execute(select(func.count()).select_from(Postmortem))
     ).scalar_one()
     assert count == 1
+
+
+class _FakeWriter:
+    """A live writer that records how many PRs it opened."""
+
+    enabled = True
+
+    def __init__(self):
+        self.calls = 0
+
+    async def open_postmortem_pr(self, **kw):
+        self.calls += 1
+        return {"html_url": "https://github.com/x/y/pull/1", "number": 1}
+
+
+async def _resolved_incident(session) -> Incident:
+    inc = Incident(
+        correlation_key="FieldError: cannot resolve keyword 'x'",
+        opened_at=_OPENED,
+        resolved_at=_RESOLVED,
+        status="resolved",
+        severity=2,
+        release="r" * 40,
+        diagnosis=_culprit_diagnosis(),
+        fixing_sha="f" * 40,
+        resolution_source="manual",
+    )
+    session.add(inc)
+    session.add(Deploy(head_sha="f" * 40, run_started_at=_RESOLVED, branch="master"))
+    await session.commit()
+    return inc
+
+
+async def test_publish_opens_one_pr_then_is_idempotent(db_session):
+    inc = await _resolved_incident(db_session)
+    writer = _FakeWriter()
+    row1 = await publish_postmortem(db_session, inc, writer=writer, repo=_REPO)
+    assert row1.state == "opened" and row1.pr_number == 1 and writer.calls == 1
+    row2 = await publish_postmortem(db_session, inc, writer=writer, repo=_REPO)
+    assert row2.id == row1.id and writer.calls == 1  # never a second PR
+
+
+async def test_publish_dry_run_leaves_it_drafted(db_session):
+    inc = await _resolved_incident(db_session)
+    row = await publish_postmortem(db_session, inc, writer=None, repo=_REPO)
+    assert row.state == "drafted" and row.pr_url is None  # rendered, not pushed

@@ -372,3 +372,53 @@ async def draft_postmortem(
         row.body = draft.body
     await session.commit()
     return row
+
+
+async def publish_postmortem(
+    session: AsyncSession,
+    incident: Incident,
+    *,
+    writer,
+    repo: str,
+    default_branch: str = "master",
+    pr_body: str | None = None,
+    narrative: str | None = None,
+    thread: list[dict] | None = None,
+) -> Postmortem:
+    """Draft the postmortem and, if the writer is live, open exactly one PR.
+
+    Idempotent (M4 decision 8): an already-``opened`` row is returned untouched —
+    Culprit opens at most one PR per incident. A disabled/None writer (dry-run)
+    leaves the row ``drafted`` and pushes nothing.
+    """
+    row = await draft_postmortem(
+        session,
+        incident,
+        repo=repo,
+        default_branch=default_branch,
+        narrative=narrative,
+        thread=thread,
+    )
+    if row.state == "opened":
+        return row  # one PR per outage — never a second
+    if writer is None or not getattr(writer, "enabled", False):
+        return row  # dry-run: drafted, not pushed
+
+    result = await writer.open_postmortem_pr(
+        path=row.path,
+        branch=row.branch,
+        title=row.title,
+        body=row.body,
+        base=default_branch,
+        pr_body=pr_body
+        or (
+            f"Culprit drafted a postmortem for incident #{incident.id}. "
+            "Review and merge if it looks right — Culprit never merges on its own."
+        ),
+    )
+    if result:
+        row.pr_url = result.get("html_url")
+        row.pr_number = result.get("number")
+        row.state = "opened"
+        await session.commit()
+    return row

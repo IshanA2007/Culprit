@@ -16,6 +16,7 @@ dependencies = [
     "python-dateutil>=2.9,<3",
     "pgvector>=0.3,<0.4",
     "cryptography>=44,<46",
+    "pyjwt>=2.8,<3",
 ]
 
 [project.scripts]
