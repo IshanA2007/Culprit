@@ -45,7 +45,9 @@ def associate_release(head_sha: str, *, cwd: Path = TCF_WORK_DIR) -> int:
     # --ignore-missing: each scenario is a separate fault branch, so a prior
     # run's release SHA isn't in this window's ancestry; skip the unfindable
     # previous release rather than erroring, and associate this window's commits.
-    _sentry_cli("releases", "set-commits", head_sha, "--local", "--ignore-missing", cwd=cwd)
+    _sentry_cli(
+        "releases", "set-commits", head_sha, "--local", "--ignore-missing", cwd=cwd
+    )
     _sentry_cli("releases", "finalize", head_sha, cwd=cwd)
 
     n = count_associated_commits(head_sha)

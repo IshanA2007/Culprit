@@ -58,7 +58,9 @@ def record_all() -> list[dict]:
                 epoch=time.time(),
             )
             fx = len(rr.fixture_paths)
-            results.append({"case": label, "status": "ok", "run_id": rr.run_id, "fixtures": fx})
+            results.append(
+                {"case": label, "status": "ok", "run_id": rr.run_id, "fixtures": fx}
+            )
             print(f"[{i}/{len(plan)}] OK   {label}  fixtures={fx}", flush=True)
         except Exception as exc:  # keep going; each run is independent + crash-safe
             results.append({"case": label, "status": "FAIL", "error": str(exc)[:300]})

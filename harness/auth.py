@@ -85,7 +85,16 @@ class Session:
 def provision_session(container: str = HARNESS_WEB_CONTAINER) -> Session:
     """Create a logged-in Django session + CSRF pair, bypassing Cognito."""
     proc = subprocess.run(
-        ["docker", "exec", container, "python", "manage.py", "shell", "-c", _SHELL_SNIPPET],
+        [
+            "docker",
+            "exec",
+            container,
+            "python",
+            "manage.py",
+            "shell",
+            "-c",
+            _SHELL_SNIPPET,
+        ],
         text=True,
         capture_output=True,
         check=True,
