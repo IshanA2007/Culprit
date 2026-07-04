@@ -51,6 +51,36 @@ def _cmd_record(_args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_run(args: argparse.Namespace) -> int:
+    import time
+    from datetime import UTC, datetime
+
+    from harness.scenarios.runner import run_scenario
+
+    now = datetime.now(UTC)
+    ts = now.strftime("%Y%m%dT%H%M%S")
+    seed = args.seed if args.seed is not None else int(now.timestamp())
+    rr = run_scenario(
+        args.fault_id,
+        size=args.size,
+        culprit_position=args.position,
+        timestamp=ts,
+        seed=seed,
+        epoch=time.time(),
+    )
+    print(f"\nrun record: runs/{rr.run_id}.yaml")
+    print(f"  ground_truth={rr.ground_truth}  release={rr.release_sha[:10]}")
+    if rr.culprit_sha:
+        print(
+            f"  culprit={rr.culprit_sha[:10]}  in_window={rr.culprit_in_window()}  "
+            f"is_release={rr.culprit_is_release()}"
+        )
+    print(
+        f"  window: {' -> '.join(('C' if c.is_culprit else 'd') for c in rr.window)}  (C=culprit, d=decoy)"
+    )
+    return 0
+
+
 def _not_implemented(task: str):
     def _run(_args: argparse.Namespace) -> int:
         print(f"'{_args.command}' is implemented in {task} (needs live infra).")
@@ -71,17 +101,27 @@ def build_parser() -> argparse.ArgumentParser:
     rec.add_argument("--port", type=int, default=9000)
     rec.set_defaults(func=_cmd_record)
 
+    run = sub.add_parser("run", help="run one fault scenario end-to-end")
+    run.add_argument("fault_id", help="fault id from the manifest")
+    run.add_argument(
+        "--size", type=int, default=4, help="deploy-window size (default 4)"
+    )
+    run.add_argument(
+        "--position",
+        default="middle",
+        help="culprit slot: middle/early/random (never head for size>1)",
+    )
+    run.add_argument("--seed", type=int, default=None)
+    run.set_defaults(func=_cmd_run)
+
     for name, task in [
         ("up", "Task 3"),
         ("seed", "Task 2"),
         ("snapshot", "Task 2"),
         ("reset", "Task 7"),
-        ("run", "Task 7"),
         ("revert", "Task 7"),
     ]:
         sp = sub.add_parser(name, help=f"{name} (implemented in {task})")
-        if name == "run":
-            sp.add_argument("fault_id", help="fault id from the manifest")
         sp.set_defaults(func=_not_implemented(task))
 
     return p
