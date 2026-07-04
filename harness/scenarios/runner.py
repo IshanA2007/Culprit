@@ -24,6 +24,7 @@ pipeline runs end-to-end locally today; they light up when Sentry/ngrok exist.
 
 from __future__ import annotations
 
+import contextlib
 import os
 import subprocess
 import time
@@ -221,95 +222,101 @@ def run_scenario(
     sentry_dsn = os.environ.get("SENTRY_DSN", "")
     run_id = f"{timestamp}-{fault.id}-w{size}"
 
-    # 1. reset DB
-    reset_db()
+    try:
+        # 1. reset DB
+        reset_db()
 
-    # 2. build window (code fault: decoys+fault; infra/baseline: decoys only)
-    n_decoys = size - 1 if fault.fault_class is FaultClass.CODE else size
-    decoys = sample_decoys(n_decoys, seed=seed)
-    window: BuiltWindow = build_window(
-        fault,
-        decoys,
-        size=size,
-        culprit_position=culprit_position,
-        timestamp=timestamp,
-        seed=seed,
-    )
-
-    # 3. tag + push to the fork (retained refs for M2)
-    tag_and_push(window)
-
-    # 4. sentry release (gated)
-    if sentry_dsn:
-        from harness.sentry_release import associate_release
-
-        associate_release(window.release_sha)
-
-    # 5. release task (applies bad-migration faults; reproduces prod skew)
-    run_release_task()
-
-    # 6. recreate web with the new release; assert it took
-    recreate_web(window.release_sha, sentry_dsn=sentry_dsn)
-    baked = container_release()
-    if baked != window.release_sha:
-        raise RuntimeError(
-            f"web reports release {baked!r}, expected {window.release_sha!r}"
+        # 2. build window (code fault: decoys+fault; infra/baseline: decoys only)
+        n_decoys = size - 1 if fault.fault_class is FaultClass.CODE else size
+        decoys = sample_decoys(n_decoys, seed=seed)
+        window: BuiltWindow = build_window(
+            fault,
+            decoys,
+            size=size,
+            culprit_position=culprit_position,
+            timestamp=timestamp,
+            seed=seed,
         )
 
-    # 7. auth session if needed
-    cookies, csrf = None, None
-    if fault.requires_auth:
-        sess = provision_session()
-        cookies = sess.cookies
-        with httpx.Client(base_url=f"http://localhost:{config.HARNESS_HTTP_PORT}") as c:
-            c.get("/", cookies=cookies)
-            csrf = c.cookies.get("csrftoken")
+        # 3. tag + push to the fork (retained refs for M2)
+        tag_and_push(window)
 
-    # 8. drive traffic / execute infra action
-    if fault.fault_class is FaultClass.INFRA and fault.docker_action:
-        subprocess.run(fault.docker_action, shell=True, check=False)
-    traffic = drive(fault, cookies=cookies, csrf_token=csrf, repeats=3)
+        # 4. sentry release (gated)
+        if sentry_dsn:
+            from harness.sentry_release import associate_release
 
-    # 9. collect webhooks (Sentry-visible faults; delivery has latency) + logs
-    fixture_paths: list[str] = []
-    if sentry_dsn and fault.sentry_visible:
-        fixture_paths = collect_webhooks(since_epoch=epoch)
-    log_path = capture_logs(run_id, since_epoch=epoch)
+            associate_release(window.release_sha)
 
-    # 10. run record
-    culprit = next((c for c in window.commits if c.is_culprit), None)
-    rr = RunRecord(
-        run_id=run_id,
-        fault_id=fault.id,
-        fault_class=fault.fault_class.value,
-        ground_truth=fault.ground_truth.value,
-        base_sha=window.base_sha,
-        release_sha=window.release_sha,
-        window=window.commits,
-        culprit_sha=culprit.sha if culprit else None,
-        injected_at=timestamp,
-        decoy_config={
-            "size": size,
-            "position": culprit_position,
-            "seed": seed,
-            "decoys": [d.id for d in decoys],
-            "traffic_5xx": traffic.error_count,
-        },
-        fixture_paths=fixture_paths,
-        log_paths=[log_path],
-    )
-    rr.write()
+        # 5. release task (applies bad-migration faults; reproduces prod skew)
+        run_release_task()
 
-    # 11. cleanup — restore infra, reset the working branch, and DELETE this
-    # run's Sentry issues so the next run of any fault creates a fresh issue
-    # (keeps "A new issue is created" firing; plan decision 4).
-    if fault.fault_class is FaultClass.INFRA:
-        _restore_infra(fault)
-    reset_to_base()
-    if sentry_dsn:
-        from harness.sentry_release import purge_environment_issues
+        # 6. recreate web with the new release; assert it took
+        recreate_web(window.release_sha, sentry_dsn=sentry_dsn)
+        baked = container_release()
+        if baked != window.release_sha:
+            raise RuntimeError(
+                f"web reports release {baked!r}, expected {window.release_sha!r}"
+            )
 
-        purge_environment_issues()
+        # 7. auth session if needed
+        cookies, csrf = None, None
+        if fault.requires_auth:
+            sess = provision_session()
+            cookies = sess.cookies
+            with httpx.Client(
+                base_url=f"http://localhost:{config.HARNESS_HTTP_PORT}"
+            ) as c:
+                c.get("/", cookies=cookies)
+                csrf = c.cookies.get("csrftoken")
+
+        # 8. drive traffic / execute infra action
+        if fault.fault_class is FaultClass.INFRA and fault.docker_action:
+            subprocess.run(fault.docker_action, shell=True, check=False)
+        traffic = drive(fault, cookies=cookies, csrf_token=csrf, repeats=3)
+
+        # 9. collect webhooks (Sentry-visible faults; delivery has latency) + logs
+        fixture_paths: list[str] = []
+        if sentry_dsn and fault.sentry_visible:
+            fixture_paths = collect_webhooks(since_epoch=epoch)
+        log_path = capture_logs(run_id, since_epoch=epoch)
+
+        # 10. run record
+        culprit = next((c for c in window.commits if c.is_culprit), None)
+        rr = RunRecord(
+            run_id=run_id,
+            fault_id=fault.id,
+            fault_class=fault.fault_class.value,
+            ground_truth=fault.ground_truth.value,
+            base_sha=window.base_sha,
+            release_sha=window.release_sha,
+            window=window.commits,
+            culprit_sha=culprit.sha if culprit else None,
+            injected_at=timestamp,
+            decoy_config={
+                "size": size,
+                "position": culprit_position,
+                "seed": seed,
+                "decoys": [d.id for d in decoys],
+                "traffic_5xx": traffic.error_count,
+            },
+            fixture_paths=fixture_paths,
+            log_paths=[log_path],
+        )
+        rr.write()
+    finally:
+        # 11. cleanup — ALWAYS runs (crash-safe): restore infra, reset the
+        # working branch, and DELETE this run's Sentry issues so the next run of
+        # any fault creates a fresh issue (keeps "A new issue is created" firing;
+        # plan decision 4).
+        if fault.fault_class is FaultClass.INFRA:
+            _restore_infra(fault)
+        with contextlib.suppress(Exception):
+            reset_to_base()
+        if sentry_dsn:
+            with contextlib.suppress(Exception):
+                from harness.sentry_release import purge_environment_issues
+
+                purge_environment_issues()
     return rr
 
 
