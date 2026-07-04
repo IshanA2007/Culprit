@@ -54,6 +54,31 @@ def test_abstention_brief_reads_infrastructural():
     assert "failed request" in content
 
 
+def test_brief_offers_runbook_offer_only():
+    ctx = BriefContext(
+        title="ConnectionError: Error -2 connecting to culprit_redis",
+        verdict="abstain",
+        abstain_kind="infrastructural",
+        reason="No code culprit — looks infrastructural.",
+        runbook_id="redis-elasticache-down",
+        runbook_title="Redis / ElastiCache down",
+        runbook_summary="The Redis ElastiCache node is unreachable; cachalot 500s.",
+    )
+    content = render_brief(ctx)["content"]
+    assert "Suggested runbook" in content
+    assert "Redis / ElastiCache down" in content
+    # The permanent offer-only stance must be visible in the brief itself.
+    assert "offer-only" in content.lower() or "never execute" in content.lower()
+
+
+def test_brief_omits_runbook_section_when_absent():
+    ctx = BriefContext(
+        title="x", verdict="abstain", abstain_kind="low_confidence", reason="r"
+    )
+    content = render_brief(ctx)["content"]
+    assert "Suggested runbook" not in content
+
+
 def test_impact_line_hedges_user_estimate():
     ctx = BriefContext(
         title="x",

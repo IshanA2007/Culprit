@@ -23,6 +23,7 @@ from culprit.ranking import (
     extract_error_tokens,
     rank,
 )
+from culprit.runbooks import Runbook, load_runbooks
 
 
 async def _signals(session: AsyncSession, incident_id: int) -> list[Signal]:
@@ -137,6 +138,36 @@ async def _analyze(
     return result, ctx
 
 
+def _selection_context(result: RankingResult, ctx: dict) -> str:
+    """The incident summary handed to the runbook selector (no ground truth)."""
+    frame_files = sorted({f.get("file") for f in ctx["frames"] if f.get("file")})
+    return (
+        f"Incident: {ctx['title']}\n"
+        f"Verdict: {result.verdict}"
+        + (f" ({result.abstain_kind})" if result.abstain_kind else "")
+        + "\n"
+        f"Reason: {result.reason}\n"
+        f"Error type: {ctx.get('error_type') or 'unknown'}\n"
+        f"Stack frames: {', '.join(frame_files) or 'none'}\n"
+    )
+
+
+async def _offer_runbook(
+    runbook_selector, result: RankingResult, ctx: dict
+) -> Runbook | None:
+    """Ask the (gated) selector for one runbook, resolved against the corpus."""
+    if runbook_selector is None or not getattr(runbook_selector, "enabled", False):
+        return None
+    corpus = load_runbooks()
+    rid = await runbook_selector.select_runbook(
+        context=_selection_context(result, ctx), corpus=corpus
+    )
+    if not rid:
+        return None
+    # Resolve defensively: an id outside the corpus is never surfaced.
+    return next((r for r in corpus if r.id == rid), None)
+
+
 async def run_pipeline(
     session: AsyncSession,
     incident: Incident,
@@ -144,6 +175,7 @@ async def run_pipeline(
     github,
     llm=None,
     discord=None,
+    runbook_selector=None,
     settings=None,
 ) -> tuple[RankingResult, dict]:
     """Analyse, render, and post/edit the brief. Returns (result, brief payload)."""
@@ -156,6 +188,8 @@ async def run_pipeline(
     rationale = None
     if llm is not None and getattr(llm, "enabled", False):
         rationale = await llm.rationale(result, error_title=ctx["title"], impact=impact)
+
+    runbook = await _offer_runbook(runbook_selector, result, ctx)
 
     brief_ctx = BriefContext(
         title=ctx["title"],
@@ -170,6 +204,9 @@ async def run_pipeline(
         frames=ctx["frames"],
         repo=settings.github_repo,
         resolved=incident.status == "resolved",
+        runbook_id=runbook.id if runbook else None,
+        runbook_title=runbook.title if runbook else None,
+        runbook_summary=runbook.summary if runbook else None,
     )
     payload = render_brief(brief_ctx)
 

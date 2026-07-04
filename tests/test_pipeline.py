@@ -79,6 +79,78 @@ async def test_second_run_edits_the_living_message(db_session):
     assert len(fake.posts) == 1 and len(fake.edits) == 1  # edited, not re-posted
 
 
+class _FakeSelector:
+    """Offer-only RunbookSelector stub — returns a preset corpus id."""
+
+    enabled = True
+
+    def __init__(self, runbook_id: str | None):
+        self.runbook_id = runbook_id
+
+    async def select_runbook(self, *, context, corpus):
+        return self.runbook_id
+
+
+async def _preset_culprit_incident(db_session):
+    incident = Incident(
+        status="open",
+        release="2126ec08b659479e2231601ccf2683e5a034a222",
+        correlation_key="NoReverseMatch: boom",
+        verdict="culprit",  # preset -> analysis skipped, no GitHub needed
+        ranked=[{"sha": "e0a08029ab12", "score": 5.0, "reason": "changes template"}],
+    )
+    db_session.add(incident)
+    await db_session.flush()
+    db_session.add(
+        Signal(
+            source="sentry",
+            kind="event_alert",
+            dedup_key="rb1",
+            incident_id=incident.id,
+            fingerprint="NoReverseMatch: boom",
+            frames=[{"file": "course_instructor.py", "lineno": 178}],
+            count=3,
+            users=1,
+            raw={},
+        )
+    )
+    await db_session.commit()
+    return incident
+
+
+async def test_pipeline_offers_runbook_when_selector_enabled(db_session):
+    incident = await _preset_culprit_incident(db_session)
+    _, payload = await run_pipeline(
+        db_session,
+        incident,
+        github=None,
+        discord=_FakeDiscord(),
+        runbook_selector=_FakeSelector("rollback-bad-deploy"),
+    )
+    assert "Suggested runbook" in payload["content"]
+    assert "Roll back a bad deploy" in payload["content"]  # resolved from corpus
+
+
+async def test_pipeline_omits_runbook_without_selector(db_session):
+    incident = await _preset_culprit_incident(db_session)
+    _, payload = await run_pipeline(
+        db_session, incident, github=None, discord=_FakeDiscord()
+    )
+    assert "Suggested runbook" not in payload["content"]
+
+
+async def test_pipeline_ignores_selector_id_not_in_corpus(db_session):
+    incident = await _preset_culprit_incident(db_session)
+    _, payload = await run_pipeline(
+        db_session,
+        incident,
+        github=None,
+        discord=_FakeDiscord(),
+        runbook_selector=_FakeSelector("hallucinated-runbook"),
+    )
+    assert "Suggested runbook" not in payload["content"]
+
+
 async def _setup_incident(session, run):
     """Seed base deploy, ingest the run's deploy + Sentry signals -> incident."""
     session.add(

@@ -76,10 +76,32 @@ class RunbookSelector(Protocol):
     """Chooses at most one runbook id for an incident (impl gated on the LLM key).
 
     Implementations MUST return an id present in ``corpus`` or ``None`` — never a
-    hallucinated id (v1 constrains the model output to corpus ids, temp 0).
+    hallucinated id (v1 constrains the model output to corpus ids, temp 0). The
+    pipeline additionally resolves the returned id against the loaded corpus, so
+    a stray id is dropped rather than surfaced.
     """
 
-    def select(self, *, context: str, corpus: list[Runbook]) -> str | None: ...
+    enabled: bool
+
+    async def select_runbook(
+        self, *, context: str, corpus: list[Runbook]
+    ) -> str | None: ...
+
+
+def coerce_runbook_id(raw: str, valid_ids: set[str]) -> str | None:
+    """Constrain a selector's raw output to a real corpus id (or ``None``).
+
+    Tolerates the punctuation a model may add (backticks, a trailing period) and
+    treats the explicit ``NONE`` sentinel — or any unrecognized id — as "no
+    runbook fits". This is the load-bearing guard that a hallucinated id is never
+    offered.
+    """
+    if not raw:
+        return None
+    token = raw.strip().strip("`").strip().rstrip(".").strip()
+    if token in valid_ids:
+        return token
+    return None
 
 
 def _parse_frontmatter(text: str, path: Path) -> tuple[dict[str, Any], str]:

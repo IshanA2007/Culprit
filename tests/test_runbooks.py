@@ -12,7 +12,12 @@ from __future__ import annotations
 
 import pytest
 
-from culprit.runbooks import RunbookError, load_runbooks, validate
+from culprit.runbooks import (
+    RunbookError,
+    coerce_runbook_id,
+    load_runbooks,
+    validate,
+)
 from harness.manifest import GroundTruth, load_manifest
 
 RUNBOOKS = load_runbooks()
@@ -112,3 +117,19 @@ def test_validate_rejects_duplicate_ids():
     dupe = list(RUNBOOKS) + [RUNBOOKS[0]]
     with pytest.raises(RunbookError):
         validate(dupe)
+
+
+def test_coerce_runbook_id_constrains_selector_output_to_corpus():
+    ids = {"redis-elasticache-down", "rollback-bad-deploy"}
+    # exact id passes through
+    assert coerce_runbook_id("redis-elasticache-down", ids) == "redis-elasticache-down"
+    # tolerant of backticks / trailing punctuation the model may add
+    assert (
+        coerce_runbook_id("`redis-elasticache-down`", ids) == "redis-elasticache-down"
+    )
+    assert coerce_runbook_id("rollback-bad-deploy.", ids) == "rollback-bad-deploy"
+    # the explicit "no runbook fits" sentinel
+    assert coerce_runbook_id("NONE", ids) is None
+    # a hallucinated id is rejected (never surface an id not in the corpus)
+    assert coerce_runbook_id("made-up-runbook", ids) is None
+    assert coerce_runbook_id("", ids) is None

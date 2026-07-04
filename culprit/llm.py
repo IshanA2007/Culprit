@@ -10,9 +10,19 @@ nondeterminism (plan decision 6, Risk table).
 from __future__ import annotations
 
 from culprit.ranking import RankingResult
+from culprit.runbooks import Runbook, coerce_runbook_id
 
 SONNET = "claude-sonnet-5"
 HAIKU = "claude-haiku-4-5-20251001"
+
+_RUNBOOK_SYSTEM = (
+    "You are Culprit, an incident-response assistant. You are given an incident "
+    "summary and a catalog of remediation runbooks (each 'id — title: summary'). "
+    "Choose the SINGLE most relevant runbook for this incident and reply with "
+    "ONLY its id, copied exactly. If none of the runbooks fit, reply with the "
+    "single word NONE. Never invent an id and never add any other text. Culprit "
+    "only OFFERS the runbook to a human — it never executes it."
+)
 
 _RATIONALE_SYSTEM = (
     "You are Culprit, an incident-response assistant for a Django app. You are "
@@ -77,6 +87,38 @@ class LLM:
         return "".join(
             block.text for block in resp.content if block.type == "text"
         ).strip()
+
+    async def select_runbook(
+        self, *, context: str, corpus: list[Runbook]
+    ) -> str | None:
+        """Pick one runbook id for the incident (offer-only; temp 0; ids-constrained).
+
+        v1 retrieval (plan decision 11): titles+summaries in the prompt, Sonnet
+        picks. The output is constrained to real corpus ids via
+        ``coerce_runbook_id`` — a hallucinated or ``NONE`` reply yields ``None``,
+        so the brief never offers a runbook that isn't in the corpus.
+        """
+        if not self._client or not corpus:
+            return None
+        catalog = "\n".join(f"- {r.prompt_line()}" for r in corpus)
+        valid_ids = {r.id for r in corpus}
+        prompt = (
+            f"Incident summary:\n{context}\n\n"
+            f"Runbook catalog:\n{catalog}\n\n"
+            "Reply with exactly one runbook id, or NONE."
+        )
+        # Sonnet 5 deprecates the temperature param; selection stability comes
+        # from the ids-constrained output + the tight single-id instruction.
+        resp = await self._client.messages.create(
+            model=self.model,
+            max_tokens=32,
+            system=_RUNBOOK_SYSTEM,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        raw = "".join(
+            block.text for block in resp.content if block.type == "text"
+        ).strip()
+        return coerce_runbook_id(raw, valid_ids)
 
     async def summarize(self, text: str) -> str | None:
         """Cheap Haiku summary (e.g. a long incident timeline)."""

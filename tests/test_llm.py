@@ -11,6 +11,21 @@ import pytest
 from culprit.config import get_settings
 from culprit.llm import LLM
 from culprit.ranking import Candidate, RankingResult
+from culprit.runbooks import load_runbooks
+
+RUNBOOKS = load_runbooks()
+
+# A redis-down incident context — a ConnectionError flood, cache-connectivity
+# frames, abstention verdict. The offer-only selector should pick the cache
+# runbook even though we abstain on the code culprit.
+_REDIS_DOWN_CONTEXT = (
+    "Incident: ConnectionError: Error -2 connecting to culprit_redis\n"
+    "Verdict: abstain (infrastructural)\n"
+    "Reason: No code culprit — looks infrastructural (ConnectionError; no window "
+    "commit is implicated by the stack trace).\n"
+    "Error type: ConnectionError\n"
+    "Stack frames: django_cachalot/monkey_patch.py, redis/connection.py\n"
+)
 
 API_KEY = get_settings().anthropic_api_key
 requires_key = pytest.mark.skipif(
@@ -69,3 +84,16 @@ async def test_summarize_returns_text():
     llm = LLM(api_key=API_KEY)
     out = await llm.summarize("A long incident timeline with several signals joining.")
     assert isinstance(out, str) and out.strip()
+
+
+async def test_select_runbook_disabled_without_key_returns_none():
+    llm = LLM(api_key=None)
+    out = await llm.select_runbook(context=_REDIS_DOWN_CONTEXT, corpus=RUNBOOKS)
+    assert out is None
+
+
+@requires_key
+async def test_selector_picks_redis_runbook_for_a_redis_down_incident():
+    llm = LLM(api_key=API_KEY)
+    rid = await llm.select_runbook(context=_REDIS_DOWN_CONTEXT, corpus=RUNBOOKS)
+    assert rid == "redis-elasticache-down"

@@ -28,6 +28,10 @@ class BriefContext:
     frames: list[dict] = field(default_factory=list)
     repo: str = ""
     resolved: bool = False
+    # Offer-only runbook (plan decision 11) — Culprit surfaces, never executes.
+    runbook_id: str | None = None
+    runbook_title: str | None = None
+    runbook_summary: str | None = None
 
 
 def _impact_line(count: int | None, users: int | None) -> str:
@@ -43,6 +47,19 @@ def _frames_line(frames: list[dict]) -> str:
         f"`{f.get('file')}:{f.get('lineno')}`" for f in frames if f.get("file")
     )
     return f"**Stack frames:** {cited}" if cited else ""
+
+
+def _runbook_lines(ctx: BriefContext) -> list[str]:
+    """The offer-only runbook section (empty when no runbook was selected)."""
+    if not ctx.runbook_title:
+        return []
+    lines = [
+        f"🛠 **Suggested runbook** (offer-only — Culprit never executes): "
+        f"**{ctx.runbook_title}**"
+    ]
+    if ctx.runbook_summary:
+        lines.append(f"> {ctx.runbook_summary}")
+    return lines
 
 
 def render_brief(ctx: BriefContext) -> dict:
@@ -74,6 +91,7 @@ def render_brief(ctx: BriefContext) -> dict:
             lines.append(ctx.rationale)
 
     lines.append(_impact_line(ctx.count, ctx.users))
+    lines.extend(_runbook_lines(ctx))
     if ctx.release:
         lines.append(f"**Release:** `{ctx.release[:8]}`")
     if not ctx.resolved:
