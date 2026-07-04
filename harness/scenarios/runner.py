@@ -331,4 +331,18 @@ def _restore_infra(fault: Fault) -> None:
         config.HARNESS_WEB_CONTAINER,
         check=False,
     )
+    # Wait for the DB to accept connections before the next run's reset_db, so a
+    # just-restarted db-stopped fault can't cascade-fail the following scenario.
+    for _ in range(30):
+        r = _docker(
+            "exec",
+            config.HARNESS_DB_CONTAINER,
+            "bash",
+            "-lc",
+            'pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"',
+            check=False,
+        )
+        if r.returncode == 0:
+            break
+        time.sleep(1)
     _compose("up", "-d", "--force-recreate", "web", check=False)

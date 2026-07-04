@@ -81,6 +81,13 @@ def _cmd_run(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_record_corpus(_args: argparse.Namespace) -> int:
+    from harness.scenarios.corpus import record_all
+
+    results = record_all()
+    return 0 if all(r["status"] == "ok" for r in results) else 1
+
+
 def _not_implemented(task: str):
     def _run(_args: argparse.Namespace) -> int:
         print(f"'{_args.command}' is implemented in {task} (needs live infra).")
@@ -113,6 +120,10 @@ def build_parser() -> argparse.ArgumentParser:
     )
     run.add_argument("--seed", type=int, default=None)
     run.set_defaults(func=_cmd_run)
+
+    sub.add_parser(
+        "record-corpus", help="record the full corpus (all faults x window sizes)"
+    ).set_defaults(func=_cmd_record_corpus)
 
     for name, task in [
         ("up", "Task 3"),
