@@ -59,6 +59,11 @@ class RunRecord:
     # the M2 ingest contract (see harness/deployfeed.py). None until backfilled.
     deploy: str | None = None
 
+    # The SNS/CloudWatch alarm delivery for a silent fault (M3): a synthesized
+    # SNS Notification fixture (see harness/snsfeed.py). Only silent-fault + infra
+    # dedup runs carry one; None otherwise. Backfilled by `backfill-sns`.
+    sns: str | None = None
+
     def culprit_in_window(self) -> bool:
         return any(c.is_culprit and c.sha == self.culprit_sha for c in self.window)
 

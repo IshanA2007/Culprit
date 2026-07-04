@@ -1,0 +1,18 @@
+# Runbook precision labels — the answer key for the GATED runbook-precision eval
+# section (plan decision 12). SCORER-ONLY: the pipeline never sees fault_id or this
+# file; the selector sees only incident context. Read exclusively by
+# culprit/eval/score.py::score_runbook. Maps every incident-producing fault to its
+# one intended runbook (authored in Task 1; runbooks/*.md).
+labels:
+  template-noreversematch-instructor-card: app-error-spike-after-deploy
+  search-fielderror-500: app-error-spike-after-deploy
+  vote-duplicate-integrityerror: app-error-spike-after-deploy
+  landing-import-crash-bad-deploy: rollback-bad-deploy
+  bad-migration-drop-semester-season: bad-migration-rollback
+  n-plus-one-section-instructor-prefetch: perf-latency-regression
+  cartesian-join-gpa-annotation-timeout: perf-latency-regression
+  search-silent-zero-results: search-zero-results
+  bad-migration-drop-trigram-gin-indexes: perf-latency-regression
+  redis-down: redis-elasticache-down
+  db-stopped: rds-outage-conn-exhaustion
+  gunicorn-worker-oom: ecs-oom-crashloop

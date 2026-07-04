@@ -47,6 +47,55 @@ async def _incident_count(session) -> int:
     return (await session.execute(select(func.count(Incident.id)))).scalar_one()
 
 
+async def test_alarm_joins_open_sentry_incident_cross_source(db_session):
+    """Cross-source dedup (plan decision 7): a CloudWatch alarm within the window
+    of an open Sentry incident joins it (different fingerprints) -> 1 incident."""
+    sentry = await _add_signal(
+        db_session,
+        "sentry-1",
+        release="R",
+        fingerprint="ConnectionError: boom",
+        received_at=_T0,
+    )
+    inc1 = await correlate_signal(db_session, sentry, WINDOW)
+
+    alarm = Signal(
+        source="cloudwatch",
+        kind="alarm",
+        dedup_key="sns:alarm-1",
+        release=None,
+        fingerprint="tcf-prod-elasticache-health",  # differs from the Sentry title
+        frames=[],
+        received_at=_T0 + timedelta(seconds=30),
+    )
+    db_session.add(alarm)
+    await db_session.flush()
+    inc2 = await correlate_signal(db_session, alarm, WINDOW)
+
+    assert inc1.id == inc2.id  # the alarm joined, did not open a second incident
+    assert await _incident_count(db_session) == 1
+
+
+async def test_alarm_opens_its_own_incident_outside_the_window(db_session):
+    sentry = await _add_signal(
+        db_session, "sentry-2", release="R", fingerprint="Boom", received_at=_T0
+    )
+    await correlate_signal(db_session, sentry, WINDOW)
+    alarm = Signal(
+        source="cloudwatch",
+        kind="alarm",
+        dedup_key="sns:alarm-2",
+        release=None,
+        fingerprint="tcf-prod-rds-connections",
+        frames=[],
+        received_at=_T0 + timedelta(seconds=WINDOW + 60),  # past the window
+    )
+    db_session.add(alarm)
+    await db_session.flush()
+    await correlate_signal(db_session, alarm, WINDOW)
+    assert await _incident_count(db_session) == 2
+
+
 async def test_two_same_release_signals_close_in_time_one_incident(db_session):
     s1 = await _add_signal(
         db_session, "a", release="R", fingerprint="Boom", received_at=_T0

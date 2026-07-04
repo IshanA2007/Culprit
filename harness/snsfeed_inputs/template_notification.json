@@ -1,0 +1,46 @@
+{
+  "_note": "Vendored schema template — the field set of a real SNS HTTPS Notification whose Message is a real CloudWatch alarm state-change. Sourced from AWS's published message formats (docs.aws.amazon.com/sns 'Parsing message formats' + CloudWatch 'AlarmNotification'). Only the field SHAPE matters here; harness/snsfeed.py fills real alarm values. Key parity is enforced by tests/test_snsfeed.py.",
+  "notification": {
+    "Type": "Notification",
+    "MessageId": "22b80b92-fdea-4c2c-8f9d-bdfb0c7bf324",
+    "TopicArn": "arn:aws:sns:us-east-1:123456789012:tcf-prod-alarms",
+    "Subject": "ALARM: \"tcf-prod-alb-target-response-time\" in US East (N. Virginia)",
+    "Message": "{\"AlarmName\":\"example\"}",
+    "Timestamp": "2026-07-04T03:58:36.123Z",
+    "SignatureVersion": "1",
+    "Signature": "EXAMPLEw6JRN...",
+    "SigningCertURL": "https://sns.us-east-1.amazonaws.com/SimpleNotificationService-0000000000000000000000.pem",
+    "UnsubscribeURL": "https://sns.us-east-1.amazonaws.com/?Action=Unsubscribe&SubscriptionArn=arn:aws:sns:us-east-1:123456789012:tcf-prod-alarms:00000000-0000-0000-0000-000000000000"
+  },
+  "message": {
+    "AlarmName": "tcf-prod-alb-target-response-time",
+    "AlarmDescription": "ALB p95 target response time elevated",
+    "AWSAccountId": "123456789012",
+    "AlarmConfigurationUpdatedTimestamp": "2026-07-01T00:00:00.000+0000",
+    "NewStateValue": "ALARM",
+    "NewStateReason": "Threshold Crossed",
+    "StateChangeTime": "2026-07-04T03:58:36.000+0000",
+    "Region": "US East (N. Virginia)",
+    "AlarmArn": "arn:aws:cloudwatch:us-east-1:123456789012:alarm:tcf-prod-alb-target-response-time",
+    "OldStateValue": "OK",
+    "OKActions": [],
+    "AlarmActions": ["arn:aws:sns:us-east-1:123456789012:tcf-prod-alarms"],
+    "InsufficientDataActions": [],
+    "Trigger": {
+      "MetricName": "TargetResponseTime",
+      "Namespace": "AWS/ApplicationELB",
+      "StatisticType": "Statistic",
+      "Statistic": "P95",
+      "Unit": null,
+      "Dimensions": [
+        {"value": "app/tcf-prod-alb/50dc6c495c0c9188", "name": "LoadBalancer"}
+      ],
+      "Period": 60,
+      "EvaluationPeriods": 3,
+      "ComparisonOperator": "GreaterThanThreshold",
+      "Threshold": 2.0,
+      "TreatMissingData": "missing",
+      "EvaluateLowSampleCountPercentile": ""
+    }
+  }
+}

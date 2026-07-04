@@ -36,3 +36,4 @@ fixture_paths:
 log_paths:
 - fixtures/logs/20260704T040413-db-stopped-w3-web.log
 deploy: fixtures/github/workflow_run/20260704T040413-a69e852d.json
+sns: fixtures/sns/20260704T040413-221db5fb.json

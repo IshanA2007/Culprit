@@ -22,7 +22,12 @@ from culprit.config import REPO_ROOT, get_settings
 from culprit.deploys import reconstruct_window
 from culprit.github_api import GitHubClient, blame_commit_for_line
 from culprit.ingest.sentry import parse_sentry
-from culprit.ranking import error_type_from_title, extract_error_tokens, rank
+from culprit.ranking import (
+    error_type_from_title,
+    extract_error_tokens,
+    rank,
+    rank_frameless,
+)
 from harness.runrecord import load_all_run_records
 
 RUNS = load_all_run_records()
@@ -107,6 +112,58 @@ def test_blame_hit_boosts_candidate():
     )
     assert result.verdict == "culprit"
     assert result.ranked[0].sha == "b"
+
+
+# --- frameless ranking (silent faults, alarm-class affinity — decision 9) ----
+
+
+def test_frameless_latency_alarm_picks_the_annotation_commit():
+    candidates = [
+        _cand("decoy", ["browse.py"], "+# tidy up"),
+        _cand("culprit", ["stats.py"], "+    qs = qs.annotate(gpa=Avg('gpa'))"),
+    ]
+    result = rank_frameless(candidates, alarm_metric="TargetResponseTime")
+    assert result.verdict == "culprit"
+    assert result.ranked[0].sha == "culprit"
+
+
+def test_frameless_latency_alarm_picks_index_dropping_migration():
+    candidates = [
+        _cand("decoy", ["views/browse.py"], "+x = 1"),
+        _cand(
+            "culprit",
+            ["tcf_website/migrations/0042_drop.py"],
+            "+        migrations.RemoveIndex(model_name='course', name='trgm_idx'),",
+        ),
+    ]
+    result = rank_frameless(candidates, alarm_metric="TargetResponseTime")
+    assert result.verdict == "culprit"
+    assert result.ranked[0].sha == "culprit"
+
+
+def test_frameless_search_canary_picks_search_module_commit():
+    candidates = [
+        _cand("decoy", ["browse.py"], "+x = 1"),
+        _cand("culprit", ["tcf_website/search.py"], "+    threshold = 0.9"),
+    ]
+    result = rank_frameless(candidates, alarm_metric="SuccessPercent")
+    assert result.verdict == "culprit"
+    assert result.ranked[0].sha == "culprit"
+
+
+def test_frameless_memory_alarm_abstains_infrastructural():
+    candidates = [_cand("a", ["views.py"], "+x = 1")]
+    result = rank_frameless(candidates, alarm_metric="MemoryUtilization")
+    assert result.verdict == "abstain"
+    assert result.abstain_kind == "infrastructural"
+
+
+def test_frameless_no_affinity_abstains_low_confidence():
+    # a latency alarm but no candidate touches a latency surface -> higher bar abstain
+    candidates = [_cand("a", ["templates/x.html"], "+<div>hi</div>")]
+    result = rank_frameless(candidates, alarm_metric="TargetResponseTime")
+    assert result.verdict == "abstain"
+    assert result.abstain_kind == "low_confidence"
 
 
 def test_error_type_and_token_helpers():

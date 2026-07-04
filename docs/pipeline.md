@@ -44,6 +44,11 @@ none.
 | `ANTHROPIC_API_KEY` | Sonnet 5 rationale + Haiku 4.5 summarize (LLM only phrases) |
 | `DISCORD_WEBHOOK_URL` | post/edit the brief |
 | `CORRELATION_WINDOW_SECONDS` | dedup window (default 600) |
+| `VOYAGE_API_KEY` | embeddings for similar-incident search (M3, gated; absent → inert) |
+| `SNS_SIGNATURE_STRICT` | require a valid SNS X.509 signature on `/ingest/sns` (default true) |
+| `SNS_SIGNING_CERT_PATH` | dev/fixture cert for offline SNS verify; unset in prod → fetch `SigningCertURL` under the `sns.<region>.amazonaws.com` allowlist |
+| `SNS_ALLOWED_TOPIC_ARNS` | comma-separated TopicArn allowlist (empty → any) |
+| `AUTORUN_PIPELINE` | ingest routes run the pipeline + post the brief in the background (default false; on for the serve smoke-check) |
 
 Source before secret-gated work: `set -a; source .env; set +a`.
 
@@ -82,16 +87,24 @@ is the *only* reader of ground truth.
 
 ### Honest per-class N (what "top-3 of what?" means)
 
-The corpus is 22 runs. Only the Sentry-visible ones are scoreable by M2:
+The corpus is 22 runs. M3's SNS/CloudWatch ingest pulls in the silent faults, so
+**all 22 are now scored** (nothing deferred). Sentry-visible and SNS-silent top-k
+are reported **separately AND combined** — M2's 10/10 is never silently diluted:
 
 | Class | N | What is measured |
 |---|---|---|
-| Culprit commit (Sentry code faults) | 10 | top-1 / top-3 vs the recorded window |
-| Abstention (infra faults) | 2 | emits "No code culprit — looks infrastructural" |
+| Culprit — Sentry-visible code faults | 10 | top-1 / top-3 vs the recorded window (frame path) |
+| Culprit — SNS-silent code faults | 8 | top-1 / top-3 (frameless: log-frames + alarm-class diff affinity) |
+| Culprit — combined | 18 | the two above, denominated together |
+| Abstention (infra faults) | 3 | redis-down, db-stopped, gunicorn-oom → "No code culprit — looks infrastructural" |
 | Baseline (benign deploy) | 1 | produces no incident (false-positive anchor) |
-| Deferred to M3 | 9 | silent faults (8 code + gunicorn-oom): **no Sentry event by design** → no incident here. Their run records carry culprit truth; they join the eval when M3's SNS/CloudWatch ingest exists. |
+| Cross-source dedup (Sentry + SNS → 1 incident) | 2 | redis-down, db-stopped fire both feeds → exactly one incident |
+| Runbook precision (GATED, LLM) | 21 | correct runbook offered vs scorer-only `eval/runbook_labels.yaml` |
+| Similar-incident retrieval (GATED, Voyage) | ~9 | a fault's w4 sibling retrieves its w1 via pgvector |
 
-The 9 deferred runs are **not** counted as misses — publish N per class.
+The gated sections run only with their key present (`uv run culprit eval`;
+`--no-gated` for the deterministic headline only). The deterministic verdict is
+never scored by the LLM. Silent-fault accuracy is whatever it honestly is.
 
 ## Tests
 
@@ -106,12 +119,43 @@ corresponding secret is absent — so **CI** (which has no secrets) runs the off
 + DB suite, while **locally** (with `.env` + a GitHub token) the full live suite
 runs. CI adds a `postgres:17` service and a migrate step (`.github/workflows/ci.yml`).
 
-## Forward to Milestone 3
+## Milestone 3 — the diagnosis layer
 
-`signals`/`incidents` take a new source with no schema change → **SNS/CloudWatch
-ingest** pulls the silent faults into the eval (N grows 10 → 18+). `evidence` +
-`jobs` already hold the audit trail the diagnosis synthesizer and impact
-calculator build on. `culprit/llm.py` + a prompt-embedded runbook list is where
-runbook retrieval lands; pgvector enters for similar-incident search.
+M3 extends the same service (no `signals` schema change — an alarm maps onto
+`source="cloudwatch"`, `kind="alarm"`, `dedup_key="sns:<MessageId>"`,
+`fingerprint=<AlarmName>`, `frames=[]`). Additive columns only: `incidents.diagnosis`
+(jsonb) and `incidents.embedding` (pgvector). The Postgres image is now
+`pgvector/pgvector:pg17` (docker-compose + CI).
+
+- **`POST /ingest/sns`** — the `SubscriptionConfirmation` handshake (SSRF-guarded
+  `SubscribeURL` GET), verify-then-parse Notifications (genuine SNS X.509 signature,
+  `culprit/sns_verify.py`), idempotent on `MessageId`. Dispatches on the
+  `x-amz-sns-message-type` header (the SNS `text/plain` gotcha). Cross-source dedup:
+  an alarm within the window joins an open Sentry incident (single-service scope).
+- **Providers** (`culprit/cloudwatch.py`, `LogsProvider`): `FixtureLogsProvider`
+  over `fixtures/logs/` (offline eval/demo) and `Boto3LogsProvider` (live, gated on
+  AWS creds). Stack-trace source order: webhook frames → logs → absent. `culprit/logparse.py`
+  turns the middleware exception JSON into fork-relative frames the ranker reuses.
+- **Ranking** stays the M2 composite for frame-ful incidents (log-frames included);
+  frameless silent faults use alarm-class diff-surface affinity with a higher
+  abstention bar (`rank_frameless`).
+- **Runbooks** (`runbooks/*.md`, offer-only): the LLM picks one from titles+summaries
+  (temp-0, ids-constrained), gated on `ANTHROPIC_API_KEY`. **Impact** (`culprit/impact.py`)
+  states its methodology on every number. **Diagnosis** (`culprit/diagnosis.py`) renders
+  ranked hypotheses with confidence + cited evidence ids, persisted to `incidents.diagnosis`
+  (the M4 postmortem input). **Similar incidents** via pgvector + Voyage (gated).
+
+**AWS: zero live dependency in M3.** SNS deliveries are synthesized shape-faithful
+fixtures (`fixtures/sns/`, `harness/snsfeed.py`, signed by a vendored keypair —
+`fixtures/sns/PROVENANCE.md`). The live swap is documented in
+[`docs/aws/aws-access.md`](aws/aws-access.md) with the exact read-only IAM ask
+([`culprit-readonly-policy.json`](aws/culprit-readonly-policy.json)) and the alarm
+suite ([`alarms-proposal.tf`](aws/alarms-proposal.tf)).
+
+## Forward to Milestone 4
+
+`incidents.diagnosis` (hypotheses + offered runbook + impact snapshot) + the
+`jobs`/`evidence` audit trail is the postmortem PR's input; the brief's resolve
+affordance is its trigger.
 ```
 

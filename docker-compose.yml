@@ -4,7 +4,9 @@
 # runs the service's database. Bring it up with:  docker compose up -d db
 services:
   db:
-    image: postgres:17
+    # pgvector/pgvector:pg17 is a drop-in for postgres:17 that ships the `vector`
+    # extension (plan decision 13 — "similar past incident" search).
+    image: pgvector/pgvector:pg17
     container_name: culprit_m2_db
     environment:
       POSTGRES_USER: culprit

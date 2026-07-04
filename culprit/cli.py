@@ -44,25 +44,58 @@ def _cmd_eval(args: argparse.Namespace) -> int:
 
     from culprit.config import get_settings
     from culprit.db import get_sessionmaker
-    from culprit.eval.driver import evaluate_all
-    from culprit.eval.score import format_report
+    from culprit.eval.driver import (
+        evaluate_all,
+        evaluate_runbook_precision,
+        evaluate_similar_retrieval,
+    )
+    from culprit.eval.score import format_gated_sections, format_report
     from culprit.github_api import GitHubClient
+    from culprit.llm import LLM
+    from culprit.similar import VoyageEmbedder
 
-    async def _run() -> tuple[dict, list[dict]]:
+    async def _run() -> tuple[dict, list[dict], dict | None, dict | None]:
         settings = get_settings()
         github = GitHubClient(settings.github_token, settings.github_repo)
         maker = get_sessionmaker()
+        runbook = similar = None
         try:
             async with maker() as session:
-                return await evaluate_all(session, github=github)
+                agg, entries = await evaluate_all(session, github=github)
+                # Gated sections run only with their key present (own N each).
+                if not args.no_gated and settings.anthropic_api_key:
+                    runbook = await evaluate_runbook_precision(
+                        session, github=github, llm=LLM(settings.anthropic_api_key)
+                    )
+                if not args.no_gated and settings.voyage_api_key:
+                    similar = await evaluate_similar_retrieval(
+                        session,
+                        github=github,
+                        embedder=VoyageEmbedder(settings.voyage_api_key),
+                    )
         finally:
             await github.aclose()
+        return agg, entries, runbook, similar
 
-    agg, entries = asyncio.run(_run())
+    agg, entries, runbook, similar = asyncio.run(_run())
     if args.json:
-        print(_json.dumps({"summary": agg, "runs": entries}, indent=2, default=str))
+        print(
+            _json.dumps(
+                {
+                    "summary": agg,
+                    "runs": entries,
+                    "runbook": runbook,
+                    "similar": similar,
+                },
+                indent=2,
+                default=str,
+            )
+        )
     else:
         print(format_report(agg, entries))
+        gated = format_gated_sections(runbook, similar)
+        if gated:
+            print(gated)
     return 0
 
 
@@ -83,6 +116,11 @@ def build_parser() -> argparse.ArgumentParser:
     p_eval = sub.add_parser("eval", help="replay the M1 corpus and score")
     p_eval.add_argument(
         "--json", action="store_true", help="emit JSON instead of a table"
+    )
+    p_eval.add_argument(
+        "--no-gated",
+        action="store_true",
+        help="skip the gated LLM/Voyage sections (deterministic headline only)",
     )
     p_eval.set_defaults(func=_cmd_eval)
 

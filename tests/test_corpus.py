@@ -26,6 +26,19 @@ ABSTAIN_RUNS = [r for r in RUNS if r.ground_truth == "abstain"]
 BASELINE_RUNS = [r for r in RUNS if r.ground_truth == "no_incident"]
 
 GITHUB_DEPLOY_DIR = FIXTURES_DIR / "github" / "workflow_run"
+SNS_DIR = FIXTURES_DIR / "sns"
+SNS_SIGNING_CERT = REPO_ROOT / "harness" / "snsfeed_inputs" / "sns_signing_cert.pem"
+
+# fault_ids that SHOULD carry an SNS fixture (silent faults + infra dedup cases).
+SNS_FAULT_IDS = {
+    "n-plus-one-section-instructor-prefetch",
+    "cartesian-join-gpa-annotation-timeout",
+    "bad-migration-drop-trigram-gin-indexes",
+    "search-silent-zero-results",
+    "gunicorn-worker-oom",
+    "redis-down",
+    "db-stopped",
+}
 
 
 def _load_deploy(run):
@@ -241,6 +254,86 @@ def test_no_orphaned_github_fixtures():
         assert rel in referenced, (
             f"orphaned deploy fixture (no run references it): {rel}"
         )
+
+
+# --- synthesized SNS/CloudWatch alarm-feed invariants (plan Task 6) ----------
+
+
+def _load_sns(run):
+    """Load a run's SNS fixture -> (envelope, decoded SNS Notification)."""
+    assert run.sns, f"{run.run_id}: no SNS fixture linked"
+    path = REPO_ROOT / run.sns
+    assert path.exists(), f"{run.run_id}: SNS fixture missing at {run.sns}"
+    env = json.loads(path.read_text())
+    notification = json.loads(env["raw_body"].encode("latin-1"))
+    return env, notification
+
+
+def test_sns_fixtures_link_the_expected_silent_and_infra_runs():
+    """Exactly the silent faults + infra dedup cases carry an SNS fixture."""
+    linked = {r.fault_id for r in RUNS if r.sns}
+    assert linked == SNS_FAULT_IDS, f"unexpected SNS-linked faults: {linked}"
+
+
+def test_no_orphaned_sns_fixtures():
+    """Every SNS fixture is referenced by exactly one run (mirrors Sentry/GitHub)."""
+    if not SNS_DIR.exists():
+        return
+    referenced = {r.sns for r in RUNS if r.sns}
+    for f in SNS_DIR.rglob("*.json"):
+        rel = str(f.relative_to(REPO_ROOT))
+        assert rel in referenced, f"orphaned SNS fixture (no run references it): {rel}"
+
+
+def test_sns_envelope_is_reconstructed_and_text_plain():
+    """The classic SNS gotcha: JSON body delivered as text/plain; the route must
+    dispatch on the x-amz-sns-message-type header, not the content type."""
+    for r in RUNS:
+        if not r.sns:
+            continue
+        env, _ = _load_sns(r)
+        assert env["source"] == "sns" and env["resource"] == "notification"
+        assert env.get("reconstructed") is True
+        assert env["headers"]["content-type"].startswith("text/plain")
+        assert env["headers"]["x-amz-sns-message-type"] == "Notification"
+
+
+def test_sns_payloads_never_name_the_fault():
+    """Anti-leakage: alarm names/topics are generic infra metrics — a consumer
+    that read the fault off the SNS payload would be cheating."""
+    for r in RUNS:
+        if not r.sns:
+            continue
+        env, notif = _load_sns(r)
+        assert r.fault_id not in json.dumps(env), (
+            f"{r.run_id}: fault id leaks into its SNS payload"
+        )
+        message = json.loads(notif["Message"])
+        assert r.fault_id not in message["AlarmName"]
+        assert message["NewStateValue"] == "ALARM"
+
+
+def test_sns_signatures_verify_against_the_vendored_cert():
+    """Every SNS fixture's Signature verifies against the vendored signing cert
+    (committed) — so the real verification code path runs offline, no secret
+    needed (unlike the HMAC feeds). The private key is gitignored."""
+    from harness import snsfeed
+
+    if not SNS_DIR.exists() or not SNS_SIGNING_CERT.exists():
+        pytest.skip("no SNS fixtures / vendored cert")
+    cert_pem = SNS_SIGNING_CERT.read_bytes()
+    checked = 0
+    for r in RUNS:
+        if not r.sns:
+            continue
+        _, notif = _load_sns(r)
+        if not notif.get("Signature"):
+            continue
+        assert snsfeed.verify_signature(notif, cert_pem), (
+            f"{r.run_id}: SNS signature does not verify"
+        )
+        checked += 1
+    assert checked > 0, "no signed SNS fixtures verified"
 
 
 @pytest.mark.skipif(not TCF_WORK_DIR.exists(), reason="no working clone (CI)")

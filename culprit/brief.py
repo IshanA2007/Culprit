@@ -13,6 +13,9 @@ from dataclasses import dataclass, field
 
 import httpx
 
+from culprit.diagnosis import Diagnosis
+from culprit.impact import Impact, compute_impact
+
 
 @dataclass
 class BriefContext:
@@ -25,17 +28,27 @@ class BriefContext:
     release: str | None = None
     count: int | None = None
     users: int | None = None
+    impact: Impact | None = None  # deterministic, method-stated (plan decision 10)
+    diagnosis: Diagnosis | None = None  # ranked hypotheses (plan decision 14)
+    diagnosis_narrative: str | None = None  # LLM phrasing only (never the verdict)
     frames: list[dict] = field(default_factory=list)
     repo: str = ""
     resolved: bool = False
+    # Offer-only runbook (plan decision 11) — Culprit surfaces, never executes.
+    runbook_id: str | None = None
+    runbook_title: str | None = None
+    runbook_summary: str | None = None
+    # Similar past incidents (plan decision 13) — [{id, title, distance}].
+    similar: list[dict] = field(default_factory=list)
 
 
-def _impact_line(count: int | None, users: int | None) -> str:
-    reqs = count if count is not None else 0
-    line = f"**Impact:** ~{reqs} failed request(s)"
-    if users:
-        line += f" · ≈{users} unique user(s) affected (Sentry userCount, an estimate)"
-    return line
+def _impact_line(ctx: BriefContext) -> str:
+    """The impact line — prefers the method-stated Impact, else builds one from
+    the raw Sentry counts so every number still carries its methodology."""
+    impact = ctx.impact or compute_impact(
+        sentry_count=ctx.count, sentry_users=ctx.users
+    )
+    return impact.render()
 
 
 def _frames_line(frames: list[dict]) -> str:
@@ -43,6 +56,48 @@ def _frames_line(frames: list[dict]) -> str:
         f"`{f.get('file')}:{f.get('lineno')}`" for f in frames if f.get("file")
     )
     return f"**Stack frames:** {cited}" if cited else ""
+
+
+def _diagnosis_lines(ctx: BriefContext) -> list[str]:
+    """Ranked hypotheses with confidence + cited evidence — never a single answer."""
+    diag = ctx.diagnosis
+    if not diag or not diag.hypotheses:
+        return []
+    lines = ["**Diagnosis — ranked hypotheses:**"]
+    if ctx.diagnosis_narrative:
+        lines.append(f"_{ctx.diagnosis_narrative}_")
+    for i, h in enumerate(diag.hypotheses, 1):
+        cite = (
+            " (evidence " + ", ".join(f"#{e}" for e in h.evidence_ids) + ")"
+            if h.evidence_ids
+            else ""
+        )
+        lines.append(f"{i}. _[{h.confidence} confidence]_ {h.statement}{cite}")
+    return lines
+
+
+def _similar_lines(ctx: BriefContext) -> list[str]:
+    """Cite the nearest prior incidents (empty when none / search inert)."""
+    if not ctx.similar:
+        return []
+    cites = ", ".join(
+        f"#{m['id']}" + (f" ({m['title']})" if m.get("title") else "")
+        for m in ctx.similar
+    )
+    return [f"**Similar past incidents:** {cites}"]
+
+
+def _runbook_lines(ctx: BriefContext) -> list[str]:
+    """The offer-only runbook section (empty when no runbook was selected)."""
+    if not ctx.runbook_title:
+        return []
+    lines = [
+        f"🛠 **Suggested runbook** (offer-only — Culprit never executes): "
+        f"**{ctx.runbook_title}**"
+    ]
+    if ctx.runbook_summary:
+        lines.append(f"> {ctx.runbook_summary}")
+    return lines
 
 
 def render_brief(ctx: BriefContext) -> dict:
@@ -73,7 +128,10 @@ def render_brief(ctx: BriefContext) -> dict:
         if ctx.rationale:
             lines.append(ctx.rationale)
 
-    lines.append(_impact_line(ctx.count, ctx.users))
+    lines.extend(_diagnosis_lines(ctx))
+    lines.append(_impact_line(ctx))
+    lines.extend(_runbook_lines(ctx))
+    lines.extend(_similar_lines(ctx))
     if ctx.release:
         lines.append(f"**Release:** `{ctx.release[:8]}`")
     if not ctx.resolved:

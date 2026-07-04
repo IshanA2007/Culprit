@@ -1,0 +1,15 @@
+{
+  "received_at": "2026-07-04T04:05:16.000Z",
+  "source": "sns",
+  "resource": "notification",
+  "headers": {
+    "content-type": "text/plain; charset=UTF-8",
+    "user-agent": "Amazon Simple Notification Service Agent",
+    "x-amz-sns-message-type": "Notification",
+    "x-amz-sns-message-id": "900b5d93-1692-ee35-e8be-2a5e7f042752",
+    "x-amz-sns-topic-arn": "arn:aws:sns:us-east-1:123456789012:tcf-prod-alarms",
+    "x-amz-sns-subscription-arn": "arn:aws:sns:us-east-1:123456789012:tcf-prod-alarms:c6dca152-9861-ee5f-1713-160855b8d583"
+  },
+  "raw_body": "{\"Type\":\"Notification\",\"MessageId\":\"900b5d93-1692-ee35-e8be-2a5e7f042752\",\"TopicArn\":\"arn:aws:sns:us-east-1:123456789012:tcf-prod-alarms\",\"Subject\":\"ALARM: \\\"tcf-prod-alb-target-response-time\\\" in US East (N. Virginia)\",\"Message\":\"{\\\"AlarmName\\\": \\\"tcf-prod-alb-target-response-time\\\", \\\"AlarmDescription\\\": \\\"ALB p95 target response time is elevated (latency regression).\\\", \\\"AWSAccountId\\\": \\\"123456789012\\\", \\\"AlarmConfigurationUpdatedTimestamp\\\": \\\"2026-07-01T00:00:00.000+0000\\\", \\\"NewStateValue\\\": \\\"ALARM\\\", \\\"NewStateReason\\\": \\\"Threshold Crossed: 3 datapoint(s) GreaterThanThreshold the threshold (2.0).\\\", \\\"StateChangeTime\\\": \\\"2026-07-04T04:05:16.000+0000\\\", \\\"Region\\\": \\\"US East (N. Virginia)\\\", \\\"AlarmArn\\\": \\\"arn:aws:cloudwatch:us-east-1:123456789012:alarm:tcf-prod-alb-target-response-time\\\", \\\"OldStateValue\\\": \\\"OK\\\", \\\"OKActions\\\": [\\\"arn:aws:sns:us-east-1:123456789012:tcf-prod-alarms\\\"], \\\"AlarmActions\\\": [\\\"arn:aws:sns:us-east-1:123456789012:tcf-prod-alarms\\\"], \\\"InsufficientDataActions\\\": [], \\\"Trigger\\\": {\\\"MetricName\\\": \\\"TargetResponseTime\\\", \\\"Namespace\\\": \\\"AWS/ApplicationELB\\\", \\\"StatisticType\\\": \\\"Statistic\\\", \\\"Statistic\\\": \\\"P95\\\", \\\"Unit\\\": null, \\\"Dimensions\\\": [{\\\"value\\\": \\\"app/tcf-prod-alb/50dc6c495c0c9188\\\", \\\"name\\\": \\\"LoadBalancer\\\"}], \\\"Period\\\": 60, \\\"EvaluationPeriods\\\": 3, \\\"ComparisonOperator\\\": \\\"GreaterThanThreshold\\\", \\\"Threshold\\\": 2.0, \\\"TreatMissingData\\\": \\\"missing\\\", \\\"EvaluateLowSampleCountPercentile\\\": \\\"\\\"}}\",\"Timestamp\":\"2026-07-04T04:05:16.000Z\",\"SignatureVersion\":\"1\",\"Signature\":\"J2n9wTCNujqP9mUUEhq19GA8PtZROWhXrg7oL22xZdAf2JDXYW5WQye9PDzAr7dGDeffcUixfGZXoUz8JLM5/WbaZqLFlLE+kS7XmSGB0Fw9WQl13TEVDlrrlgOAezxdwZSyg/+JL6syQbqASLlVwy/Xpfyp2Wy+ndWqNAbmLIxPV5U0aWWB2whv1GMnDKFn5udSlAjowxF1i6OKgJSIQrOEAISv1nHiSIVbsyZ4TaKtxuapm6OJqBU6LnPbiNQhCS7XxNjNnOKarAb5nUbne2LHOU2dFsVa4k7UNbI2QbpZT7fP7xDhW659nTsO66LWMzs1GS5QZsJGrZkuwSIzAQ==\",\"SigningCertURL\":\"https://sns.us-east-1.amazonaws.com/SimpleNotificationService-b2bfd05f6a77b36a212ebf7a2ad00f36.pem\",\"UnsubscribeURL\":\"https://sns.us-east-1.amazonaws.com/?Action=Unsubscribe&SubscriptionArn=arn:aws:sns:us-east-1:123456789012:tcf-prod-alarms:c6dca152-9861-ee5f-1713-160855b8d583\"}",
+  "reconstructed": true
+}

@@ -31,3 +31,4 @@ scratch/
 
 # GitHub API response cache (network evidence)
 .cache/
+harness/snsfeed_inputs/sns_signing_key.pem

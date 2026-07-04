@@ -54,6 +54,106 @@ def test_abstention_brief_reads_infrastructural():
     assert "failed request" in content
 
 
+def test_brief_renders_ranked_hypotheses_never_a_single_answer():
+    from culprit.diagnosis import build_diagnosis
+    from culprit.ranking import Candidate, RankingResult
+
+    top = Candidate(
+        sha="e0a08029ab12",
+        score=7.0,
+        token_hits=1,
+        file_overlap=1,
+        stem_overlap=1,
+        blame_hits=0,
+        comment_only=False,
+        files=["course_instructor.py"],
+        reason="changes course_instructor.py (in the stack trace)",
+    )
+    result = RankingResult("culprit", None, [top], "Suspect e0a08029: ...")
+    diag = build_diagnosis(
+        result,
+        error_type="NoReverseMatch",
+        evidence=[{"id": 11, "commit_sha": "e0a08029ab12", "kind": "diff"}],
+    )
+    ctx = BriefContext(
+        title="x",
+        verdict="culprit",
+        abstain_kind=None,
+        reason="r",
+        ranked=[{"sha": "e0a08029ab12", "score": 7.0, "reason": "changes template"}],
+        diagnosis=diag,
+    )
+    content = render_brief(ctx)["content"]
+    assert "Diagnosis" in content
+    assert "confidence" in content.lower()
+    assert "#11" in content  # cites the evidence row id
+    # ranked hypotheses -> more than one line under Diagnosis (never a single answer)
+    assert "1." in content and "2." in content
+
+
+def test_brief_cites_similar_past_incidents():
+    ctx = BriefContext(
+        title="x",
+        verdict="culprit",
+        abstain_kind=None,
+        reason="r",
+        ranked=[{"sha": "abc123", "score": 5.0, "reason": "changes template"}],
+        similar=[{"id": 7, "title": "NoReverseMatch: boom", "distance": 0.02}],
+    )
+    content = render_brief(ctx)["content"]
+    assert "Similar past incidents" in content
+    assert "#7" in content
+
+
+def test_brief_omits_similar_section_when_none():
+    ctx = BriefContext(
+        title="x", verdict="abstain", abstain_kind="low_confidence", reason="r"
+    )
+    assert "Similar past incidents" not in render_brief(ctx)["content"]
+
+
+def test_brief_impact_states_methodology():
+    from culprit.impact import compute_impact
+
+    ctx = BriefContext(
+        title="x",
+        verdict="culprit",
+        abstain_kind=None,
+        reason="r",
+        ranked=[{"sha": "abc123", "score": 5.0, "reason": "changes template"}],
+        impact=compute_impact(sentry_count=17, sentry_users=3),
+    )
+    content = render_brief(ctx)["content"]
+    assert "~17 failed request" in content
+    assert "≈3 unique user" in content
+    assert "method:" in content  # every number carries its methodology
+
+
+def test_brief_offers_runbook_offer_only():
+    ctx = BriefContext(
+        title="ConnectionError: Error -2 connecting to culprit_redis",
+        verdict="abstain",
+        abstain_kind="infrastructural",
+        reason="No code culprit — looks infrastructural.",
+        runbook_id="redis-elasticache-down",
+        runbook_title="Redis / ElastiCache down",
+        runbook_summary="The Redis ElastiCache node is unreachable; cachalot 500s.",
+    )
+    content = render_brief(ctx)["content"]
+    assert "Suggested runbook" in content
+    assert "Redis / ElastiCache down" in content
+    # The permanent offer-only stance must be visible in the brief itself.
+    assert "offer-only" in content.lower() or "never execute" in content.lower()
+
+
+def test_brief_omits_runbook_section_when_absent():
+    ctx = BriefContext(
+        title="x", verdict="abstain", abstain_kind="low_confidence", reason="r"
+    )
+    content = render_brief(ctx)["content"]
+    assert "Suggested runbook" not in content
+
+
 def test_impact_line_hedges_user_estimate():
     ctx = BriefContext(
         title="x",

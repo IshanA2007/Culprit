@@ -10,9 +10,14 @@ from __future__ import annotations
 
 from datetime import datetime
 
+from pgvector.sqlalchemy import Vector
 from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+
+# Voyage embedding width (voyage-3.5 default). The incidents.embedding column and
+# the embedder must agree on this (plan decision 13).
+EMBEDDING_DIM = 1024
 
 
 class Base(DeclarativeBase):
@@ -62,6 +67,14 @@ class Incident(Base):
         String(16), nullable=True
     )  # culprit|abstain
     ranked: Mapped[list] = mapped_column(JSONB, default=list)  # [{sha, score, reason}]
+    # Ranked hypotheses + offered runbook + impact snapshot (plan decision 14 —
+    # the M4 postmortem input). Additive; no signals-schema change (decision 1).
+    diagnosis: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    # pgvector embedding of title+frames for "similar past incident" search
+    # (plan decision 13). Additive; nullable when the embedder is inert.
+    embedding: Mapped[list[float] | None] = mapped_column(
+        Vector(EMBEDDING_DIM), nullable=True
+    )
     brief_message_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
 
     deploy: Mapped[Deploy | None] = relationship()

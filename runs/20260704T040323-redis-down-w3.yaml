@@ -37,3 +37,4 @@ fixture_paths:
 log_paths:
 - fixtures/logs/20260704T040323-redis-down-w3-web.log
 deploy: fixtures/github/workflow_run/20260704T040323-9ad8dd68.json
+sns: fixtures/sns/20260704T040323-0d654e7f.json
