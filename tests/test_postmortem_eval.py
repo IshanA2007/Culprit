@@ -23,10 +23,21 @@ TOKEN = get_settings().github_token
 requires_token = pytest.mark.skipif(not TOKEN, reason="GITHUB_TOKEN not configured")
 
 _S = get_settings()
+
+
+def _app_private_key() -> str | None:
+    """The App private key from either GITHUB_APP_PRIVATE_KEY or ..._PATH."""
+    from pathlib import Path
+
+    if _S.github_app_private_key:
+        return _S.github_app_private_key
+    if _S.github_app_private_key_path:
+        return Path(_S.github_app_private_key_path).read_text()
+    return None
+
+
 requires_github_app = pytest.mark.skipif(
-    not (
-        _S.github_app_id and _S.github_app_private_key and _S.github_app_installation_id
-    ),
+    not (_S.github_app_id and _app_private_key() and _S.github_app_installation_id),
     reason="GitHub App (branch+PR write) not configured",
 )
 
@@ -143,7 +154,7 @@ async def test_live_pr_opens_to_a_sandbox_and_cleans_up(db_session):
     github = GitHubClient(TOKEN, settings.github_repo)
     writer = GitHubAppWriter(
         settings.github_app_id,
-        settings.github_app_private_key,
+        _app_private_key(),
         settings.github_app_installation_id,
         settings.postmortems_repo or settings.github_repo,
     )

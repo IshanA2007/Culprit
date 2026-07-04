@@ -12,8 +12,16 @@ from __future__ import annotations
 import json
 
 import httpx
+import pytest
 
+from culprit.config import get_settings
 from culprit.discord_read import DiscordThreadReader, FixtureThreadReader
+
+_S = get_settings()
+requires_discord_bot = pytest.mark.skipif(
+    not (_S.discord_bot_token and _S.discord_incident_channel_id),
+    reason="DISCORD_BOT_TOKEN / DISCORD_INCIDENT_CHANNEL_ID not configured",
+)
 
 
 def _write(tmp_path, name, payload) -> str:
@@ -84,3 +92,16 @@ async def test_discord_reader_inert_without_token():
     reader = DiscordThreadReader(None, "123")
     assert reader.enabled is False
     assert await reader.read() == []
+
+
+@requires_discord_bot
+async def test_live_discord_read_returns_a_message_list():
+    """GATED: a real read-scoped bot token reads the incident channel. Asserts the
+    call succeeds and normalizes to the postmortem's shape (channel may be empty)."""
+    reader = DiscordThreadReader(_S.discord_bot_token, _S.discord_incident_channel_id)
+    try:
+        msgs = await reader.read()
+    finally:
+        await reader.aclose()
+    assert isinstance(msgs, list)
+    assert all({"author", "content", "timestamp"} <= set(m) for m in msgs)
