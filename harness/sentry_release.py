@@ -86,7 +86,10 @@ def purge_environment_issues(environment: str = "fault-harness") -> int:
     listed = httpx.get(
         f"{base}/api/0/projects/{org}/{project}/issues/",
         headers=headers,
-        params={"query": "", "environment": environment, "statsPeriod": "1h"},
+        params={
+            "query": f"is:unresolved environment:{environment}",
+            "statsPeriod": "24h",
+        },
         timeout=15,
     )
     listed.raise_for_status()
