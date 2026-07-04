@@ -248,7 +248,11 @@ def test_no_orphaned_github_fixtures():
     orphan invariant)."""
     if not GITHUB_DEPLOY_DIR.exists():
         return
-    referenced = {r.deploy for r in RUNS if r.deploy}
+    # workflow_run/ holds both the release deploys (run.deploy) and the M4 rollback
+    # fix-deploys (run.fix_deploy) — every fixture must be referenced by some run.
+    referenced = {r.deploy for r in RUNS if r.deploy} | {
+        r.fix_deploy for r in RUNS if r.fix_deploy
+    }
     for f in GITHUB_DEPLOY_DIR.rglob("*.json"):
         rel = str(f.relative_to(REPO_ROOT))
         assert rel in referenced, (
@@ -346,3 +350,80 @@ def test_every_recorded_sha_is_resolvable():
             assert _fork_has(c.sha), (
                 f"{r.run_id}: window SHA {c.sha[:10]} not resolvable"
             )
+
+
+# --- M4 postmortem inputs: rollback fix-deploys + Discord threads ------------
+
+DISCORD_DIR = FIXTURES_DIR / "discord"
+
+
+def _load_fix_deploy(run):
+    path = REPO_ROOT / run.fix_deploy
+    assert path.exists(), (
+        f"{run.run_id}: fix-deploy fixture missing at {run.fix_deploy}"
+    )
+    env = json.loads(path.read_text())
+    return env, json.loads(env["raw_body"].encode("latin-1"))
+
+
+def test_fix_deploys_link_exactly_the_code_faults():
+    """Code faults roll back to base_sha; infra faults resolve without a code fix."""
+    linked = {r.fault_class for r in RUNS if r.fix_deploy}
+    assert linked == {"code"}, f"unexpected fix-deploy-linked classes: {linked}"
+    assert sum(1 for r in RUNS if r.fix_deploy) == 18
+
+
+def test_fix_deploy_ships_base_sha_and_is_reconstructed():
+    for r in RUNS:
+        if not r.fix_deploy:
+            continue
+        env, body = _load_fix_deploy(r)
+        assert env.get("reconstructed") is True
+        assert body["workflow_run"]["head_sha"] == r.base_sha  # rollback target
+        assert body["workflow_run"]["conclusion"] == "success"
+
+
+def test_fix_deploy_never_names_the_fault_or_culprit():
+    """Anti-leakage: the rollback deploy carries base_sha (a real fork commit) and
+    a generic rollback message — never the fault id or the culprit sha."""
+    for r in RUNS:
+        if not r.fix_deploy:
+            continue
+        env, _ = _load_fix_deploy(r)
+        blob = json.dumps(env)
+        assert r.fault_id not in blob, f"{r.run_id}: fault id leaks into fix-deploy"
+        if r.culprit_sha:
+            assert r.culprit_sha not in blob, f"{r.run_id}: culprit sha in fix-deploy"
+
+
+def test_threads_link_every_incident_producing_run():
+    """Every run that produces an incident (18 code + 3 infra) carries a thread;
+    the benign baseline (no incident) does not."""
+    linked = {r.run_id for r in RUNS if r.thread}
+    incident = {r.run_id for r in RUNS if r.ground_truth != "no_incident"}
+    assert linked == incident
+    assert not any(r.thread for r in RUNS if r.ground_truth == "no_incident")
+
+
+def test_threads_are_generic_and_reconstructed():
+    """Anti-leakage: the chat thread is generic on-call text — no fault identity."""
+    for r in RUNS:
+        if not r.thread:
+            continue
+        fixture = json.loads((REPO_ROOT / r.thread).read_text())
+        assert fixture.get("reconstructed") is True
+        assert fixture["messages"], f"{r.run_id}: empty thread"
+        blob = json.dumps(fixture)
+        assert r.fault_id not in blob, f"{r.run_id}: fault id leaks into thread"
+        if r.culprit_sha:
+            assert r.culprit_sha not in blob, f"{r.run_id}: culprit sha in thread"
+
+
+def test_no_orphaned_discord_fixtures():
+    """Every Discord thread fixture is referenced by exactly one run."""
+    if not DISCORD_DIR.exists():
+        return
+    referenced = {r.thread for r in RUNS if r.thread}
+    for f in DISCORD_DIR.rglob("*.json"):
+        rel = str(f.relative_to(REPO_ROOT))
+        assert rel in referenced, f"orphaned Discord fixture: {rel}"

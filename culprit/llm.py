@@ -24,6 +24,15 @@ _RUNBOOK_SYSTEM = (
     "only OFFERS the runbook to a human — it never executes it."
 )
 
+_POSTMORTEM_SYSTEM = (
+    "You are Culprit. You write ONLY the Summary paragraph of an incident "
+    "postmortem, from a list of already-decided facts. Be factual and concise "
+    "(2-3 sentences) for an engineer reading the postmortem later. Never introduce "
+    "a suspect commit, a number, a runbook, or any fact not given to you; never "
+    "add Markdown headers or sections. You phrase the decided facts — you do not "
+    "decide, re-rank, or expand them."
+)
+
 _RATIONALE_SYSTEM = (
     "You are Culprit, an incident-response assistant for a Django app. You are "
     "given a deterministic verdict and its evidence. Write a concise, factual "
@@ -145,6 +154,33 @@ class LLM:
                 "You are Culprit. You phrase already-decided diagnoses; you never "
                 "change or narrow the verdict."
             ),
+            messages=[{"role": "user", "content": prompt}],
+        )
+        return "".join(
+            block.text for block in resp.content if block.type == "text"
+        ).strip()
+
+    async def phrase_postmortem(self, facts: dict) -> str | None:
+        """Write the postmortem Summary paragraph over already-decided facts.
+
+        ``facts`` is the deterministic fact list (title, culprit sha, confidence,
+        impact one-liner, fixing commit, resolution source). The model phrases them
+        into 2-3 sentences; it never introduces a new suspect, number, or section
+        (the ``phrase_diagnosis`` contract). ``None`` without a key, so the
+        deterministic fallback Summary is used (``culprit/postmortem.py``).
+        """
+        if not self._client:
+            return None
+        lines = "\n".join(f"- {k}: {v}" for k, v in facts.items() if v is not None)
+        prompt = (
+            "These incident facts are already decided. Write ONLY the Summary "
+            "paragraph (2-3 sentences). Do not add a suspect, a number, a runbook, "
+            f"or a Markdown header not listed here.\n\n{lines}"
+        )
+        resp = await self._client.messages.create(
+            model=self.model,
+            max_tokens=200,
+            system=_POSTMORTEM_SYSTEM,
             messages=[{"role": "user", "content": prompt}],
         )
         return "".join(

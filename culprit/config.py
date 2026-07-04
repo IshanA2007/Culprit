@@ -42,9 +42,31 @@ class Settings(BaseSettings):
     github_token: str | None = None
     github_repo: str = "IshanA2007/theCourseForum2"  # the harness fork
 
+    # GitHub App — the ONE write permission (M4): branch + file + PR on the fork.
+    # All optional/inert: absent -> the writer is inert and drafting stays dry-run.
+    github_app_id: str | None = None
+    github_app_private_key: str | None = None  # PEM contents
+    github_app_private_key_path: str | None = None  # ...or a path to the PEM
+    github_app_installation_id: str | None = None
+    # Where postmortems are opened (default = the fork) and the directory + branch.
+    postmortems_repo: str | None = None  # None -> github_repo
+    postmortems_dir: str = "postmortems"
+    postmortems_base_branch: str = "master"  # the fork's default branch
+    # When true (default), drafting renders the Markdown + PR request WITHOUT
+    # pushing — the eval/dry-run path. Off + App configured -> open a real PR.
+    postmortem_dry_run: bool = True
+
     # Outbound integrations.
     discord_webhook_url: str | None = None
     anthropic_api_key: str | None = None
+
+    # Discord interactions + thread read (M4). All optional/inert by default.
+    # Ed25519 app public key — verifies /discord/interactions (the /resolve command).
+    discord_public_key: str | None = None
+    # Read-scoped bot token — reads the incident channel thread for the postmortem.
+    discord_bot_token: str | None = None
+    # The channel the brief is posted in (thread root for the read path).
+    discord_incident_channel_id: str | None = None
 
     # Similar-incident embeddings via Voyage (Anthropic's recommended provider).
     # Absent -> similar-incident search is inert and its live tests skip.

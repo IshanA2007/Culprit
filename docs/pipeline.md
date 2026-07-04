@@ -152,10 +152,32 @@ fixtures (`fixtures/sns/`, `harness/snsfeed.py`, signed by a vendored keypair �
 ([`culprit-readonly-policy.json`](aws/culprit-readonly-policy.json)) and the alarm
 suite ([`alarms-proposal.tf`](aws/alarms-proposal.tf)).
 
-## Forward to Milestone 4
+## Milestone 4 — the postmortem generator
 
-`incidents.diagnosis` (hypotheses + offered runbook + impact snapshot) + the
-`jobs`/`evidence` audit trail is the postmortem PR's input; the brief's resolve
-affordance is its trigger.
+M4 turns a **resolved** incident into a **postmortem Markdown PR** on the fork —
+Culprit drafts, a human merges (see [`docs/postmortems.md`](postmortems.md)). No
+`signals` schema change; additive only: `incidents.resolved_at/fixing_sha/
+resolution_source` + a new `postmortems` table (one row per incident — idempotent).
+
+- **Resolution** (`culprit/resolution.py`) — one core reached by three triggers:
+  operator (`POST /incidents/{id}/resolve`, `culprit resolve`), SNS `ALARM→OK`
+  auto-detect (on `/ingest/sns`), and a signed Discord `/resolve` interaction
+  (`POST /discord/interactions`, Ed25519). Captures the fixing commit from the
+  deploy feed (or honest *none* — infra remediation).
+- **Assembly** (`culprit/postmortem.py`) — deterministic from `incidents.diagnosis`
+  + the deploy/signal timeline + the impact snapshot + the (gated) Discord thread
+  (`culprit/discord_read.py`); the LLM phrases the Summary only.
+- **Write path** (`culprit/github_app.py`) — the ONE write permission: a GitHub App
+  creates a branch + `postmortems/YYYY-MM-DD-slug.md` + a PR. **No merge call
+  exists.** Gated/inert → dry-run by default. See [`docs/github-app.md`](github-app.md).
+- **Eval** — `culprit eval` adds a deterministic **postmortem-completeness** section
+  (N=21, dry-run) plus gated narrative-fidelity and a gated live-PR test.
+
+| Var (M4, all optional/inert) | Used for |
+|---|---|
+| `DISCORD_PUBLIC_KEY` | verify `/discord/interactions` (the `/resolve` command) |
+| `DISCORD_BOT_TOKEN` / `DISCORD_INCIDENT_CHANNEL_ID` | read the incident chat thread (read-scoped) |
+| `GITHUB_APP_ID` / `GITHUB_APP_PRIVATE_KEY`(`_PATH`) / `GITHUB_APP_INSTALLATION_ID` | the postmortem PR write path |
+| `POSTMORTEMS_REPO` / `POSTMORTEMS_BASE_BRANCH` / `POSTMORTEM_DRY_RUN` | where + whether to open the PR (dry-run default) |
 ```
 

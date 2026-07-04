@@ -23,3 +23,5 @@ log_paths:
 - fixtures/logs/20260704T040050-search-silent-zero-results-w1-web.log
 deploy: fixtures/github/workflow_run/20260704T040050-be0ac737.json
 sns: fixtures/sns/20260704T040050-2f76d0c7.json
+fix_deploy: fixtures/github/workflow_run/20260704T040050-fix-749470bd.json
+thread: fixtures/discord/20260704T040050-30a73b76.json

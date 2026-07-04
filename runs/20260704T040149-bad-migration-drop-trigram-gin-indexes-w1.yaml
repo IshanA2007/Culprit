@@ -23,3 +23,5 @@ log_paths:
 - fixtures/logs/20260704T040149-bad-migration-drop-trigram-gin-indexes-w1-web.log
 deploy: fixtures/github/workflow_run/20260704T040149-c0de663d.json
 sns: fixtures/sns/20260704T040149-63bea58d.json
+fix_deploy: fixtures/github/workflow_run/20260704T040149-fix-3b70dac3.json
+thread: fixtures/discord/20260704T040149-f55a10a7.json

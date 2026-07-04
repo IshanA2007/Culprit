@@ -21,7 +21,12 @@ from culprit.correlation import correlate_signal
 from culprit.db import get_session
 from culprit.ingest.github import ingest_github
 from culprit.ingest.sentry import ingest_sentry
-from culprit.ingest.sns import confirm_subscription, ingest_sns_notification
+from culprit.ingest.sns import (
+    alarm_state,
+    confirm_subscription,
+    ingest_sns_notification,
+    resolve_from_alarm_ok,
+)
 from culprit.signatures import verify_github, verify_sentry
 from culprit.sns_verify import verify_message
 
@@ -99,6 +104,88 @@ async def ingest_sentry_route(
     }
 
 
+@app.post("/incidents/{incident_id}/resolve")
+async def resolve_incident_route(
+    incident_id: int, session: SessionDep, background_tasks: BackgroundTasks
+) -> dict:
+    """Operator-triggered resolution (a maintainer typed `resolve`).
+
+    Flips the incident to resolved, captures the fixing commit from the deploy
+    feed, and (when autorun is on) re-renders the living brief with `resolved`.
+    """
+    from culprit.models import Incident
+    from culprit.resolution import resolve_incident
+
+    incident = await session.get(Incident, incident_id)
+    if incident is None:
+        raise HTTPException(status_code=404, detail="incident not found")
+
+    await resolve_incident(session, incident, source="manual")
+    _schedule_pipeline(background_tasks, incident.id, get_settings())
+    return {
+        "incident_id": incident.id,
+        "status": incident.status,
+        "fixing_sha": incident.fixing_sha,
+        "resolution_source": incident.resolution_source,
+    }
+
+
+@app.post("/discord/interactions")
+async def discord_interactions_route(
+    request: Request, session: SessionDep, background_tasks: BackgroundTasks
+) -> dict:
+    """Discord-native resolution: a signed ``/resolve`` slash command.
+
+    Ed25519-verified over the raw body (401 on failure), PING answered with PONG,
+    ``/resolve`` routed through the shared resolver (``source="discord"``).
+    """
+    from culprit.discord_verify import verify_interaction
+    from culprit.ingest.discord import (
+        CHANNEL_MESSAGE_WITH_SOURCE,
+        PING,
+        PONG,
+        parse_resolve_incident_id,
+    )
+    from culprit.models import Incident
+    from culprit.resolution import resolve_incident
+
+    settings = get_settings()
+    raw = await request.body()
+    if not verify_interaction(
+        settings.discord_public_key,
+        request.headers.get("x-signature-timestamp"),
+        raw,
+        request.headers.get("x-signature-ed25519"),
+    ):
+        raise HTTPException(status_code=401, detail="invalid Discord signature")
+
+    interaction = json.loads(raw)
+    if interaction.get("type") == PING:
+        return {"type": PONG}
+
+    incident_id = parse_resolve_incident_id(interaction)
+    if incident_id is None:
+        return {
+            "type": CHANNEL_MESSAGE_WITH_SOURCE,
+            "data": {"content": "Unknown command."},
+        }
+    incident = await session.get(Incident, incident_id)
+    if incident is None:
+        return {
+            "type": CHANNEL_MESSAGE_WITH_SOURCE,
+            "data": {"content": f"Incident {incident_id} not found."},
+        }
+    await resolve_incident(session, incident, source="discord")
+    _schedule_pipeline(background_tasks, incident.id, settings)
+    fix = incident.fixing_sha[:8] if incident.fixing_sha else "none (infra remediation)"
+    return {
+        "type": CHANNEL_MESSAGE_WITH_SOURCE,
+        "data": {
+            "content": f"✅ Resolved incident {incident.id} — fixing commit: {fix}."
+        },
+    }
+
+
 @app.post("/ingest/github")
 async def ingest_github_route(request: Request, session: SessionDep) -> dict:
     raw = await request.body()
@@ -158,7 +245,12 @@ async def ingest_sns_route(
     if message_type == "UnsubscribeConfirmation":
         return {"acknowledged": True}
 
-    # Notification
+    # Notification. An ALARM -> OK transition auto-resolves the incident that
+    # alarm opened/joined (M4 decision 2) — it never opens a new one.
+    if alarm_state(message) == "OK":
+        incident = await resolve_from_alarm_ok(session, message, datetime.now(UTC))
+        return {"resolved_incident_id": incident.id if incident else None}
+
     signal = await ingest_sns_notification(session, message, datetime.now(UTC))
     incident = await correlate_signal(
         session, signal, settings.correlation_window_seconds

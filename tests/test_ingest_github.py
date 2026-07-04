@@ -29,7 +29,10 @@ requires_secret = pytest.mark.skipif(
 
 
 def _fixtures() -> list[Path]:
-    return sorted(DEPLOY_DIR.glob("*.json"))
+    """The release deploy fixtures (``run.deploy``) — this module is about the
+    release timeline. The M4 rollback fix-deploys (``run.fix_deploy``) also live in
+    workflow_run/ but ship base_sha, not release_sha, so they are excluded here."""
+    return sorted(REPO_ROOT / r.deploy for r in RUNS if r.deploy)
 
 
 def _raw(path: Path) -> bytes:

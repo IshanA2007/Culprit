@@ -76,6 +76,15 @@ class Incident(Base):
         Vector(EMBEDDING_DIM), nullable=True
     )
     brief_message_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    # Resolution state (M4 plan decision 1/3). Additive; set by resolve_incident.
+    resolved_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    # The deploy that shipped the fix (most recent after opened_at) — or NULL when
+    # the fix was infra remediation with no code change (the fix-side abstention).
+    fixing_sha: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    # How resolution was detected: discord | sns_ok | manual | sentry_quiet.
+    resolution_source: Mapped[str | None] = mapped_column(String(16), nullable=True)
 
     deploy: Mapped[Deploy | None] = relationship()
     signals: Mapped[list[Signal]] = relationship(back_populates="incident")
@@ -147,3 +156,34 @@ class Job(Base):
     finished_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+
+
+class Postmortem(Base):
+    """The drafted postmortem for a resolved incident (M4 plan decision 1).
+
+    A sibling of ``evidence``/``jobs`` — one row per incident (unique
+    ``incident_id``) so Culprit opens exactly one PR per outage (idempotency, the
+    "one brief per outage" stance applied to the write path). ``body`` is the
+    rendered Markdown; ``pr_url``/``pr_number`` fill in once the GitHub App opens
+    the PR (``state`` drafted -> opened). Culprit drafts; humans merge.
+    """
+
+    __tablename__ = "postmortems"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    incident_id: Mapped[int] = mapped_column(
+        ForeignKey("incidents.id"), unique=True, index=True
+    )
+    slug: Mapped[str] = mapped_column(String(128))
+    path: Mapped[str] = mapped_column(String(255))
+    branch: Mapped[str] = mapped_column(String(255))
+    title: Mapped[str] = mapped_column(Text)
+    body: Mapped[str] = mapped_column(Text)
+    pr_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    pr_number: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    state: Mapped[str] = mapped_column(String(16), default="drafted")  # drafted|opened
+    created_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
+    incident: Mapped[Incident] = relationship()

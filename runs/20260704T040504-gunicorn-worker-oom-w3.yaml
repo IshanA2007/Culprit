@@ -34,3 +34,5 @@ log_paths:
 - fixtures/logs/20260704T040504-gunicorn-worker-oom-w3-web.log
 deploy: fixtures/github/workflow_run/20260704T040504-673cf0d3.json
 sns: fixtures/sns/20260704T040504-f0990ab9.json
+fix_deploy: null
+thread: fixtures/discord/20260704T040504-fa017ac3.json

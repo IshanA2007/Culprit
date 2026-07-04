@@ -64,6 +64,15 @@ class RunRecord:
     # dedup runs carry one; None otherwise. Backfilled by `backfill-sns`.
     sns: str | None = None
 
+    # M4 postmortem inputs (see harness/discordfeed.py), backfilled by
+    # `backfill-postmortem-inputs`:
+    #  * fix_deploy — a rollback workflow_run shipping base_sha (the fixing commit);
+    #    only code faults carry one (infra faults resolve via remediation, no code).
+    #  * thread — the incident channel's Discord chat thread (the human narrative);
+    #    every incident-producing run carries one; the baseline does not.
+    fix_deploy: str | None = None
+    thread: str | None = None
+
     def culprit_in_window(self) -> bool:
         return any(c.is_culprit and c.sha == self.culprit_sha for c in self.window)
 

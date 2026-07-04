@@ -24,3 +24,6 @@ fixture_paths:
 log_paths:
 - fixtures/logs/20260704T043127-vote-duplicate-integrityerror-w1-web.log
 deploy: fixtures/github/workflow_run/20260704T043127-c19820ba.json
+sns: null
+fix_deploy: fixtures/github/workflow_run/20260704T043127-fix-ed164f8a.json
+thread: fixtures/discord/20260704T043127-2bf23ba8.json

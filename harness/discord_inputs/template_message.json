@@ -1,0 +1,11 @@
+{
+  "id": "1258000000000000001",
+  "channel_id": "1257000000000000009",
+  "author": {
+    "id": "1256000000000000007",
+    "username": "on-call",
+    "global_name": "On-Call"
+  },
+  "content": "Heads up — the site is throwing errors, taking a look now.",
+  "timestamp": "2026-07-04T03:47:00.000000+00:00"
+}

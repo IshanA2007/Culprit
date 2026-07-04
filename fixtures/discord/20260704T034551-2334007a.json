@@ -1,0 +1,63 @@
+{
+  "source": "discord",
+  "resource": "channel_messages",
+  "channel_id": "1051416087427235839",
+  "messages": [
+    {
+      "id": "1048146226127209744",
+      "channel_id": "1051416087427235839",
+      "author": {
+        "id": "366833869043423252",
+        "username": "on-call",
+        "global_name": "On Call"
+      },
+      "content": "Heads up \u2014 the site is throwing errors, taking a look now.",
+      "timestamp": "2026-07-04T03:47:51Z.000000+00:00"
+    },
+    {
+      "id": "1064804491137813671",
+      "channel_id": "1051416087427235839",
+      "author": {
+        "id": "720986641088938180",
+        "username": "culprit-bot",
+        "global_name": "Culprit Bot"
+      },
+      "content": "Posted a brief: likely culprit is the last deploy. Runbook offered.",
+      "timestamp": "2026-07-04T03:49:51Z.000000+00:00"
+    },
+    {
+      "id": "1014390838608412682",
+      "channel_id": "1051416087427235839",
+      "author": {
+        "id": "366833869043423252",
+        "username": "on-call",
+        "global_name": "On Call"
+      },
+      "content": "Rolling back the last deploy per the runbook.",
+      "timestamp": "2026-07-04T03:51:51Z.000000+00:00"
+    },
+    {
+      "id": "1093765302954416827",
+      "channel_id": "1051416087427235839",
+      "author": {
+        "id": "582791754543418780",
+        "username": "maintainer",
+        "global_name": "Maintainer"
+      },
+      "content": "Rollback shipped \u2014 error rate is dropping.",
+      "timestamp": "2026-07-04T03:53:51Z.000000+00:00"
+    },
+    {
+      "id": "1002747075420014852",
+      "channel_id": "1051416087427235839",
+      "author": {
+        "id": "582791754543418780",
+        "username": "maintainer",
+        "global_name": "Maintainer"
+      },
+      "content": "Green now. Resolving the incident.",
+      "timestamp": "2026-07-04T03:55:51Z.000000+00:00"
+    }
+  ],
+  "reconstructed": true
+}
