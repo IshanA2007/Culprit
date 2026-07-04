@@ -17,6 +17,13 @@ from culprit.deploys import reconstruct_window
 from culprit.diagnosis import build_diagnosis
 from culprit.evidence import gather_evidence
 from culprit.impact import compute_impact
+from culprit.logparse import (
+    distinct_client_ips,
+    error_line_count,
+    gunicorn_markers,
+    log_frames,
+    parse_error_events,
+)
 from culprit.models import Deploy, Evidence, Incident, Signal
 from culprit.ranking import (
     Candidate,
@@ -24,6 +31,7 @@ from culprit.ranking import (
     error_type_from_title,
     extract_error_tokens,
     rank,
+    rank_frameless,
 )
 from culprit.runbooks import Runbook, load_runbooks
 from culprit.similar import find_similar
@@ -51,6 +59,15 @@ def _error_context(signal: Signal | None) -> tuple[set[str], str | None, str | N
     return tokens, error_type, title
 
 
+def _alarm_metric(signals: list[Signal]) -> str | None:
+    """The CloudWatch metric name of an alarm signal (drives frameless ranking)."""
+    alarm = next((s for s in signals if s.source == "cloudwatch"), None)
+    if alarm is None:
+        return None
+    trigger = ((alarm.raw or {}).get("alarm") or {}).get("Trigger") or {}
+    return trigger.get("MetricName")
+
+
 async def _context(session: AsyncSession, incident: Incident) -> dict:
     signals = await _signals(session, incident.id)
     event_signal = next(
@@ -64,11 +81,61 @@ async def _context(session: AsyncSession, incident: Incident) -> dict:
         "title": title or incident.correlation_key or "incident",
         "count": max((s.count or 0 for s in signals), default=0),
         "users": max((s.users or 0 for s in signals), default=0),
+        "alarm_metric": _alarm_metric(signals),
+        "log_error_count": None,
+        "log_distinct_ips": None,
     }
 
 
+async def _augment_from_logs(ctx: dict, logs_provider) -> None:
+    """Fill frames + impact inputs from logs when the webhook carried no frames.
+
+    Stack-trace source order (HANDOFF §4): webhook -> logs -> absent. A log-derived
+    frame is normalized to the fork-relative shape the composite already ranks, so
+    the silent-fault path reuses the proven ranker unchanged (plan decision 9)."""
+    if (
+        ctx["frames"]
+        or logs_provider is None
+        or not getattr(logs_provider, "enabled", False)
+    ):
+        return
+    text = await logs_provider.read()
+    if not text:
+        return
+    events = parse_error_events(text)
+    ctx["frames"] = log_frames(events)
+    ctx["log_error_count"] = error_line_count(events)
+    ctx["log_distinct_ips"] = distinct_client_ips(events)
+    ctx["gunicorn_markers"] = gunicorn_markers(text)
+
+
+async def _resolve_deploy(session: AsyncSession, incident: Incident) -> Deploy | None:
+    """The deploy that shipped this incident's window.
+
+    Sentry incidents carry a release (the window head). A frameless SNS-only
+    incident has no release, so use the most recent deploy — the one that shipped
+    just before the alarm fired (the window is still pinned to a real deployed SHA)."""
+    if incident.release:
+        deploy = (
+            await session.execute(
+                select(Deploy).where(Deploy.head_sha == incident.release)
+            )
+        ).scalar_one_or_none()
+        if deploy is not None:
+            return deploy
+    return (
+        (
+            await session.execute(
+                select(Deploy).order_by(Deploy.run_started_at.desc()).limit(1)
+            )
+        )
+        .scalars()
+        .first()
+    )
+
+
 async def _analyze(
-    session: AsyncSession, incident: Incident, *, github
+    session: AsyncSession, incident: Incident, *, github, logs_provider=None
 ) -> tuple[RankingResult, dict]:
     ctx = await _context(session, incident)
 
@@ -90,9 +157,13 @@ async def _analyze(
         kind = None if incident.verdict == "culprit" else "infrastructural"
         return RankingResult(incident.verdict, kind, ranked, reason), ctx
 
-    deploy = (
-        await session.execute(select(Deploy).where(Deploy.head_sha == incident.release))
-    ).scalar_one_or_none()
+    # Log fallback: pull frames + impact inputs from the logs when the webhook
+    # carried none (a silent fault caught only by a CloudWatch alarm).
+    await _augment_from_logs(ctx, logs_provider)
+
+    deploy = await _resolve_deploy(session, incident)
+    if deploy is not None and incident.release is None:
+        incident.release = deploy.head_sha  # associate the frameless window's release
     window = (
         await reconstruct_window(github, deploy.previous_head_sha, deploy.head_sha)
         if deploy
@@ -128,13 +199,18 @@ async def _analyze(
         if e.kind == "blame" and e.commit_sha in window_set:
             blame_counts[e.commit_sha] = blame_counts.get(e.commit_sha, 0) + 1
 
-    result = rank(
-        candidates,
-        frame_files={f["file"] for f in ctx["frames"] if f.get("file")},
-        tokens=ctx["tokens"],
-        blame_counts=blame_counts,
-        error_type=ctx["error_type"],
-    )
+    if ctx["frames"]:
+        # frame path (webhook or log frames) — the proven M2 composite, unchanged
+        result = rank(
+            candidates,
+            frame_files={f["file"] for f in ctx["frames"] if f.get("file")},
+            tokens=ctx["tokens"],
+            blame_counts=blame_counts,
+            error_type=ctx["error_type"],
+        )
+    else:
+        # frameless path — alarm-class diff-surface affinity, higher abstention bar
+        result = rank_frameless(candidates, alarm_metric=ctx["alarm_metric"])
     incident.verdict = result.verdict
     incident.ranked = result.as_dicts()
     await session.flush()
@@ -193,13 +269,21 @@ async def run_pipeline(
     discord=None,
     runbook_selector=None,
     similar=None,
+    logs_provider=None,
     settings=None,
 ) -> tuple[RankingResult, dict]:
     """Analyse, render, and post/edit the brief. Returns (result, brief payload)."""
     settings = settings or get_settings()
-    result, ctx = await _analyze(session, incident, github=github)
+    result, ctx = await _analyze(
+        session, incident, github=github, logs_provider=logs_provider
+    )
 
-    impact = compute_impact(sentry_count=ctx["count"], sentry_users=ctx["users"])
+    impact = compute_impact(
+        sentry_count=ctx["count"],
+        sentry_users=ctx["users"],
+        log_error_count=ctx.get("log_error_count"),
+        log_distinct_ips=ctx.get("log_distinct_ips"),
+    )
     rationale = None
     if llm is not None and getattr(llm, "enabled", False):
         rationale = await llm.rationale(

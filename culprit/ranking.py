@@ -194,6 +194,122 @@ def _candidate_reason(files, frame_files, token_hits, blame_hits) -> str:
     return "; ".join(bits) or "no direct link to the stack trace"
 
 
+# --- frameless ranking: alarm-class diff-surface affinity (plan decision 9) --
+# When there are no frames anywhere (a silent fault caught only by a CloudWatch
+# alarm), score window commits by whether their diff touches the surface the alarm
+# class implicates. A deliberately HIGHER abstention bar than the frame path — the
+# evidence is thin (a latency alarm names no file), so the honest number governs.
+
+_FRAMELESS_MIN = 3.0
+LATENCY_METRICS = {"TargetResponseTime"}
+SEARCH_METRICS = {"SuccessPercent"}  # the synthetic search canary
+INFRA_METRICS = {
+    "HTTPCode_ELB_5XX_Count",
+    "HTTPCode_Target_5XX_Count",
+    "MemoryUtilization",
+    "CurrConnections",
+    "DatabaseConnections",
+    "CPUUtilization",
+}
+
+
+def _signed_lines(patch: str) -> tuple[list[str], list[str]]:
+    added, removed = [], []
+    for line in patch.splitlines():
+        if line.startswith("+++") or line.startswith("---"):
+            continue
+        if line.startswith("+"):
+            added.append(line[1:])
+        elif line.startswith("-"):
+            removed.append(line[1:])
+    return added, removed
+
+
+def _latency_affinity(files: list[str], patch: str) -> tuple[float, str]:
+    if _is_comment_only(patch):
+        return 0.0, ""
+    added, removed = _signed_lines(patch)
+    reasons = []
+    score = 0.0
+    if any("prefetch_related" in ln or "select_related" in ln for ln in removed):
+        score += 3
+        reasons.append("removes a prefetch_related/select_related (N+1)")
+    if any(
+        (".annotate(" in ln or ".aggregate(" in ln or ".extra(" in ln) for ln in added
+    ):
+        score += 3
+        reasons.append("adds a query annotation/aggregation (row explosion)")
+    low = patch.lower()
+    if any("/migrations/" in f for f in files) and re.search(
+        r"removeindex|drop index|deleteindex|delete_index", low
+    ):
+        score += 3
+        reasons.append("migration drops an index (seq scans)")
+    return score, "; ".join(reasons)
+
+
+def _search_affinity(files: list[str], patch: str) -> tuple[float, str]:
+    if _is_comment_only(patch):
+        return 0.0, ""
+    if any("search" in f.lower() for f in files):
+        return 3.0, "touches the search module"
+    return 0.0, ""
+
+
+def rank_frameless(
+    candidates: list[dict], *, alarm_metric: str | None
+) -> RankingResult:
+    """Rank a silent fault's window by alarm-class diff-surface affinity, or abstain.
+
+    Reads no ground-truth labels. Memory/5xx/connection alarms carry no code
+    affinity, so they abstain (infrastructural); latency and search-canary alarms
+    score the window but must clear a higher bar than the frame path."""
+    if alarm_metric in INFRA_METRICS:
+        return RankingResult(
+            "abstain",
+            "infrastructural",
+            [],
+            f"{ABSTAIN_INFRA_REASON} ({alarm_metric} alarm; no code surface implicated).",
+        )
+
+    if alarm_metric in LATENCY_METRICS:
+        affinity = _latency_affinity
+    elif alarm_metric in SEARCH_METRICS:
+        affinity = _search_affinity
+    else:
+        return RankingResult(
+            "abstain", "low_confidence", [], ABSTAIN_LOWCONF_REASON + "."
+        )
+
+    scored = []
+    for c in candidates:
+        files = c.get("files") or []
+        patch = c.get("patch") or ""
+        score, reason = affinity(files, patch)
+        scored.append(
+            Candidate(
+                sha=c["sha"],
+                score=score,
+                token_hits=0,
+                file_overlap=0,
+                stem_overlap=0,
+                blame_hits=0,
+                comment_only=_is_comment_only(patch),
+                files=files,
+                reason=reason or "no diff-surface affinity to the alarm class",
+            )
+        )
+    ranked = sorted(scored, key=lambda c: -c.score)
+    if not ranked or ranked[0].score < _FRAMELESS_MIN:
+        return RankingResult(
+            "abstain", "low_confidence", ranked, ABSTAIN_LOWCONF_REASON + "."
+        )
+    top = ranked[0]
+    return RankingResult(
+        "culprit", None, ranked, f"Suspect {top.sha[:8]} (frameless): {top.reason}."
+    )
+
+
 def rank(
     candidates: list[dict],
     *,

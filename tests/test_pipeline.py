@@ -169,6 +169,42 @@ async def test_pipeline_ignores_selector_id_not_in_corpus(db_session):
     assert "Suggested runbook" not in payload["content"]
 
 
+async def test_pipeline_frameless_alarm_incident_abstains(db_session):
+    """A silent fault caught only by a 5xx alarm — no frames, no code affinity ->
+    the frameless path abstains (infrastructural); the brief still renders."""
+    from culprit.cloudwatch import FixtureLogsProvider
+
+    incident = Incident(status="open", correlation_key="tcf-prod-alb-5xx")
+    db_session.add(incident)
+    await db_session.flush()
+    db_session.add(
+        Signal(
+            source="cloudwatch",
+            kind="alarm",
+            dedup_key="sns:oom-1",
+            incident_id=incident.id,
+            fingerprint="tcf-prod-alb-5xx",
+            frames=[],
+            raw={"alarm": {"Trigger": {"MetricName": "HTTPCode_ELB_5XX_Count"}}},
+        )
+    )
+    await db_session.commit()
+
+    oom_log = next(
+        p for p in (REPO_ROOT / "fixtures" / "logs").glob("*.log") if "oom" in p.name
+    )
+    result, payload = await run_pipeline(
+        db_session,
+        incident,
+        github=None,
+        discord=_FakeDiscord(),
+        logs_provider=FixtureLogsProvider(oom_log),
+    )
+    assert result.verdict == "abstain"
+    assert result.abstain_kind == "infrastructural"
+    assert "Diagnosis" in payload["content"]
+
+
 async def _setup_incident(session, run):
     """Seed base deploy, ingest the run's deploy + Sentry signals -> incident."""
     session.add(
