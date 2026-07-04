@@ -1,0 +1,27 @@
+# Fault manifest — the labeled catalog. Schema: harness/manifest.py
+#
+# Each entry:
+#   id:              stable slug (also the patch filename stem for code faults)
+#   category:        handoff failure-category label (e.g. "template crash")
+#   fault_class:     code | infra | baseline
+#   commit_message:  message for the materialized fault commit
+#   ground_truth:    culprit_commit (code) | abstain (infra) | no_incident (baseline)
+#   expected_signal: event_alert | issue | logs | none
+#   expected_symptom: human description of the user-visible failure
+#   sentry_visible:  true if Sentry receives an event (false = silent fault)
+#   requires_auth:   true if trigger requests need a logged-in session
+#   passes_tcf_tests: does the patched tree still pass `manage.py test`?
+#   patch:           <id>.patch (code faults only)
+#   docker_action:   shell action (infra faults only), e.g. "docker stop tcf_redis"
+#   trigger:
+#     throttle_seconds: delay between requests (quota protection)
+#     requests: [{path: /..., method: GET}]
+#   window:
+#     sizes: [1, 4]                     # record at these window sizes
+#     culprit_positions: [head, middle] # where the culprit sits (anti-leakage)
+#   notes:           free text
+#
+# Populated in Task 6/7 — each fault authored + verified against tCF @ the pinned
+# base SHA, alongside its .patch file.
+
+faults: []

@@ -1,0 +1,50 @@
+# Mirrors theCourseForum2's CI shape (astral-sh/setup-uv@v5, py3.12, uv sync --frozen).
+name: Continuous Integration
+
+on:
+  pull_request:
+    branches:
+      - "*"
+  push:
+    branches: [main]
+
+env:
+  PYTHON_TARGET: "3.12"
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: ${{ env.PYTHON_TARGET }}
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --frozen --group dev
+
+      - name: Ruff check
+        run: uv run ruff check .
+
+      - name: Ruff format
+        run: uv run ruff format --check .
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: ${{ env.PYTHON_TARGET }}
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --frozen --group dev
+
+      - name: Pytest
+        run: uv run pytest
