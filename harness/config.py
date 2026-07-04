@@ -42,8 +42,10 @@ MANIFEST_PATH = FAULTS_DIR / "manifest.yaml"
 # branched off this.
 HARNESS_BRANCH = "culprit-harness"
 
-# tCF local DB (the already-running docker container, per RECON.md §5).
-TCF_DB_CONTAINER = os.environ.get("CULPRIT_TCF_DB_CONTAINER", "tcf_db")
+# Harness Docker containers (docker-compose.harness.yml).
+HARNESS_WEB_CONTAINER = os.environ.get("CULPRIT_WEB_CONTAINER", "culprit_web")
+HARNESS_DB_CONTAINER = os.environ.get("CULPRIT_DB_CONTAINER", "culprit_db")
+HARNESS_REDIS_CONTAINER = os.environ.get("CULPRIT_REDIS_CONTAINER", "culprit_redis")
 LOCAL_DUMP_PATH = REPO_ROOT / "db" / "local.dump"
 
 # Host port the harness web container publishes (maps to container :80, gunicorn).
