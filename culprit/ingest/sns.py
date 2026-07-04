@@ -22,7 +22,8 @@ from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from culprit.models import Job, Signal
+from culprit.models import Incident, Job, Signal
+from culprit.resolution import resolve_incident
 from culprit.sns_verify import is_allowed_sns_url
 
 
@@ -80,6 +81,55 @@ async def ingest_sns_notification(
             select(Signal).where(Signal.dedup_key == parsed.dedup_key)
         )
     ).scalar_one()
+
+
+def alarm_state(message: dict) -> str | None:
+    """The CloudWatch alarm's ``NewStateValue`` (``ALARM`` / ``OK``), or None."""
+    try:
+        return json.loads(message["Message"]).get("NewStateValue")
+    except (KeyError, ValueError, TypeError):
+        return None
+
+
+async def resolve_from_alarm_ok(
+    session: AsyncSession, message: dict, received_at: datetime
+) -> Incident | None:
+    """Auto-detect resolution: an ``ALARM -> OK`` transition clears the incident.
+
+    Finds the most recent OPEN incident that a matching ``ALARM`` signal (same
+    AlarmName) opened or joined, and resolves it via the shared resolver
+    (``source="sns_ok"``). Returns None when no such incident is open (an OK for
+    an alarm that never fired here is a no-op, not a new incident).
+    """
+    try:
+        alarm_name = json.loads(message["Message"]).get("AlarmName")
+    except (KeyError, ValueError, TypeError):
+        return None
+    if not alarm_name:
+        return None
+
+    incident = (
+        (
+            await session.execute(
+                select(Incident)
+                .join(Signal, Signal.incident_id == Incident.id)
+                .where(
+                    Incident.status == "open",
+                    Signal.source == "cloudwatch",
+                    Signal.fingerprint == alarm_name,
+                )
+                .order_by(Incident.opened_at.desc())
+                .limit(1)
+            )
+        )
+        .scalars()
+        .first()
+    )
+    if incident is None:
+        return None
+    return await resolve_incident(
+        session, incident, source="sns_ok", resolved_at=received_at
+    )
 
 
 async def confirm_subscription(

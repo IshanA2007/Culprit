@@ -10,7 +10,7 @@ here a fixture sets it and clears the settings cache).
 from __future__ import annotations
 
 import json
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 import httpx
 import pytest
@@ -20,9 +20,11 @@ from culprit.config import REPO_ROOT, get_settings
 from culprit.correlation import correlate_signal
 from culprit.ingest.sentry import ingest_sentry
 from culprit.ingest.sns import (
+    alarm_state,
     confirm_subscription,
     ingest_sns_notification,
     parse_sns_notification,
+    resolve_from_alarm_ok,
 )
 from culprit.models import Incident, Signal
 from harness.runrecord import load_all_run_records
@@ -30,6 +32,15 @@ from harness.runrecord import load_all_run_records
 SNS_DIR = REPO_ROOT / "fixtures" / "sns"
 CERT_PATH = REPO_ROOT / "harness" / "snsfeed_inputs" / "sns_signing_cert.pem"
 _NOW = datetime(2026, 7, 4, 4, 0, tzinfo=UTC)
+
+
+def _alarm_notification(alarm_name: str, state: str, message_id: str) -> dict:
+    """A minimal SNS Notification carrying a CloudWatch alarm state-change."""
+    return {
+        "Type": "Notification",
+        "MessageId": message_id,
+        "Message": json.dumps({"AlarmName": alarm_name, "NewStateValue": state}),
+    }
 
 
 def _a_fixture_notification() -> dict:
@@ -153,6 +164,70 @@ async def test_route_ingests_a_signed_notification(client, sns_cert):
     assert resp.status_code == 200
     data = resp.json()
     assert data["signal_id"] and data["incident_id"]
+
+
+# --- resolution auto-detect: ALARM -> OK clears the incident (M4 Task 2) -----
+
+
+def test_alarm_state_reads_new_state_value():
+    assert alarm_state(_alarm_notification("x", "OK", "m")) == "OK"
+    assert alarm_state(_alarm_notification("x", "ALARM", "m")) == "ALARM"
+    assert alarm_state({"Message": "not json"}) is None
+
+
+async def test_alarm_ok_resolves_the_open_incident(db_session):
+    alarm_name = "tcf-prod-elasticache-health"
+    sig = await ingest_sns_notification(
+        db_session, _alarm_notification(alarm_name, "ALARM", "m-alarm"), _NOW
+    )
+    incident = await correlate_signal(db_session, sig, 600)
+    assert incident.status == "open"
+
+    resolved = await resolve_from_alarm_ok(
+        db_session,
+        _alarm_notification(alarm_name, "OK", "m-ok"),
+        _NOW + timedelta(minutes=5),
+    )
+    assert resolved is not None and resolved.id == incident.id
+    await db_session.refresh(incident)
+    assert incident.status == "resolved"
+    assert incident.resolution_source == "sns_ok"
+
+
+async def test_alarm_ok_with_no_matching_incident_is_a_noop(db_session):
+    resolved = await resolve_from_alarm_ok(
+        db_session, _alarm_notification("tcf-prod-unknown", "OK", "m-ok2"), _NOW
+    )
+    assert resolved is None
+
+
+async def test_route_ok_transition_resolves_not_reopens(
+    client, db_session, monkeypatch
+):
+    """An OK notification through the route resolves the incident (and opens none)."""
+    monkeypatch.setenv("SNS_SIGNATURE_STRICT", "false")  # unsigned dev POST
+    get_settings.cache_clear()
+    try:
+        alarm_name = "tcf-prod-rds-connections"
+        sig = await ingest_sns_notification(
+            db_session, _alarm_notification(alarm_name, "ALARM", "m-a"), _NOW
+        )
+        incident = await correlate_signal(db_session, sig, 600)
+        await db_session.commit()
+
+        ok = _alarm_notification(alarm_name, "OK", "m-o")
+        resp = await client.post(
+            "/ingest/sns",
+            content=json.dumps(ok).encode(),
+            headers={"x-amz-sns-message-type": "Notification"},
+        )
+        assert resp.status_code == 200
+        assert resp.json()["resolved_incident_id"] == incident.id
+        assert (
+            await db_session.execute(select(func.count()).select_from(Incident))
+        ).scalar_one() == 1  # resolved the one incident, opened no second
+    finally:
+        get_settings.cache_clear()
 
 
 # --- cross-source dedup with the real redis-down fixtures (the PRD metric) ----

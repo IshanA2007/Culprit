@@ -46,6 +46,14 @@ class Settings(BaseSettings):
     discord_webhook_url: str | None = None
     anthropic_api_key: str | None = None
 
+    # Discord interactions + thread read (M4). All optional/inert by default.
+    # Ed25519 app public key — verifies /discord/interactions (the /resolve command).
+    discord_public_key: str | None = None
+    # Read-scoped bot token — reads the incident channel thread for the postmortem.
+    discord_bot_token: str | None = None
+    # The channel the brief is posted in (thread root for the read path).
+    discord_incident_channel_id: str | None = None
+
     # Similar-incident embeddings via Voyage (Anthropic's recommended provider).
     # Absent -> similar-incident search is inert and its live tests skip.
     voyage_api_key: str | None = None
