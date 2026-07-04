@@ -59,9 +59,14 @@ def score_run(run, replay) -> dict:
 
     if run.ground_truth == "culprit_commit":
         entry["class"] = "culprit"
-        entry["verdict_ok"] = replay.verdict == "culprit"
-        entry["top1"] = replay.ranked[:1] == [run.culprit_sha]
-        entry["top3"] = run.culprit_sha in replay.ranked[:3]
+        # Honest top-k: only count when the pipeline actually RETURNED a culprit.
+        # An abstention is "no culprit identified" — it must not score a top-k hit
+        # just because the labeled sha sits positionally early in a 0-scored list
+        # (that would game the silent-fault number; plan decision 15).
+        identified = replay.verdict == "culprit"
+        entry["verdict_ok"] = identified
+        entry["top1"] = identified and replay.ranked[:1] == [run.culprit_sha]
+        entry["top3"] = identified and run.culprit_sha in replay.ranked[:3]
         entry["time_to_brief_s"] = replay.time_to_brief_s
     elif run.ground_truth == "abstain":
         entry["class"] = "abstain"

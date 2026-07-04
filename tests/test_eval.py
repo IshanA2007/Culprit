@@ -149,10 +149,23 @@ async def test_full_corpus_eval_m3_numbers(db_session):
     assert agg["missed"]["n"] == 0  # every fault now has a Sentry or SNS feed
 
     # Fidelity + accuracy (M2's 10/10 preserved, not diluted).
-    assert agg["culprit_sentry"]["top1"] == 10
+    assert agg["culprit_sentry"]["top1"] == 10  # the M2 guarantee, intact
     assert agg["culprit_sentry"]["top3"] == 10
     assert agg["culprit_sentry"]["window_ok"] == 10
-    assert agg["culprit_combined"]["top3"] == 18  # culprit always in top-3
+    # Combined == Sentry + SNS-silent (honest; top-k only counts real culprit
+    # verdicts, never an abstention where the sha is positionally lucky).
+    assert (
+        agg["culprit_combined"]["top1"]
+        == agg["culprit_sentry"]["top1"] + agg["culprit_sns_silent"]["top1"]
+    )
+    assert (
+        agg["culprit_combined"]["top3"]
+        == agg["culprit_sentry"]["top3"] + agg["culprit_sns_silent"]["top3"]
+    )
+    # Honest silent-fault floor: some silent faults are found, none are gamed.
+    assert (
+        0 <= agg["culprit_sns_silent"]["top1"] <= agg["culprit_sns_silent"]["top3"] <= 8
+    )
     assert agg["abstain"]["correct"] == 3
     assert agg["baseline"]["false_positives"] == 0
     assert agg["dedup"]["n"] == 2 and agg["dedup"]["correct"] == 2
