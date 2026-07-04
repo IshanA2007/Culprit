@@ -34,11 +34,16 @@ async def gather_evidence(
     for sha in window_shas:
         commit = await github.commit(sha)
         files = [f.get("filename") for f in commit.get("files", [])]
+        patch = "\n".join(f.get("patch", "") for f in commit.get("files", []))
         row = Evidence(
             incident_id=incident_id,
             commit_sha=sha,
             kind="diff",
-            payload={"files": files, "message": _commit_message(commit)},
+            payload={
+                "files": files,
+                "patch": patch,
+                "message": _commit_message(commit),
+            },
         )
         session.add(row)
         evidence.append(row)
