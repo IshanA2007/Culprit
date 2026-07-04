@@ -13,6 +13,8 @@ from dataclasses import dataclass, field
 
 import httpx
 
+from culprit.impact import Impact, compute_impact
+
 
 @dataclass
 class BriefContext:
@@ -25,6 +27,7 @@ class BriefContext:
     release: str | None = None
     count: int | None = None
     users: int | None = None
+    impact: Impact | None = None  # deterministic, method-stated (plan decision 10)
     frames: list[dict] = field(default_factory=list)
     repo: str = ""
     resolved: bool = False
@@ -34,12 +37,13 @@ class BriefContext:
     runbook_summary: str | None = None
 
 
-def _impact_line(count: int | None, users: int | None) -> str:
-    reqs = count if count is not None else 0
-    line = f"**Impact:** ~{reqs} failed request(s)"
-    if users:
-        line += f" · ≈{users} unique user(s) affected (Sentry userCount, an estimate)"
-    return line
+def _impact_line(ctx: BriefContext) -> str:
+    """The impact line — prefers the method-stated Impact, else builds one from
+    the raw Sentry counts so every number still carries its methodology."""
+    impact = ctx.impact or compute_impact(
+        sentry_count=ctx.count, sentry_users=ctx.users
+    )
+    return impact.render()
 
 
 def _frames_line(frames: list[dict]) -> str:
@@ -90,7 +94,7 @@ def render_brief(ctx: BriefContext) -> dict:
         if ctx.rationale:
             lines.append(ctx.rationale)
 
-    lines.append(_impact_line(ctx.count, ctx.users))
+    lines.append(_impact_line(ctx))
     lines.extend(_runbook_lines(ctx))
     if ctx.release:
         lines.append(f"**Release:** `{ctx.release[:8]}`")

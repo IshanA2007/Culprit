@@ -54,6 +54,23 @@ def test_abstention_brief_reads_infrastructural():
     assert "failed request" in content
 
 
+def test_brief_impact_states_methodology():
+    from culprit.impact import compute_impact
+
+    ctx = BriefContext(
+        title="x",
+        verdict="culprit",
+        abstain_kind=None,
+        reason="r",
+        ranked=[{"sha": "abc123", "score": 5.0, "reason": "changes template"}],
+        impact=compute_impact(sentry_count=17, sentry_users=3),
+    )
+    content = render_brief(ctx)["content"]
+    assert "~17 failed request" in content
+    assert "≈3 unique user" in content
+    assert "method:" in content  # every number carries its methodology
+
+
 def test_brief_offers_runbook_offer_only():
     ctx = BriefContext(
         title="ConnectionError: Error -2 connecting to culprit_redis",

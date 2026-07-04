@@ -15,6 +15,7 @@ from culprit.brief import BriefContext, render_brief
 from culprit.config import get_settings
 from culprit.deploys import reconstruct_window
 from culprit.evidence import gather_evidence
+from culprit.impact import compute_impact
 from culprit.models import Deploy, Incident, Signal
 from culprit.ranking import (
     Candidate,
@@ -182,12 +183,12 @@ async def run_pipeline(
     settings = settings or get_settings()
     result, ctx = await _analyze(session, incident, github=github)
 
-    impact = f"~{ctx['count']} failed requests" + (
-        f", ≈{ctx['users']} users" if ctx["users"] else ""
-    )
+    impact = compute_impact(sentry_count=ctx["count"], sentry_users=ctx["users"])
     rationale = None
     if llm is not None and getattr(llm, "enabled", False):
-        rationale = await llm.rationale(result, error_title=ctx["title"], impact=impact)
+        rationale = await llm.rationale(
+            result, error_title=ctx["title"], impact=impact.summary()
+        )
 
     runbook = await _offer_runbook(runbook_selector, result, ctx)
 
@@ -201,6 +202,7 @@ async def run_pipeline(
         release=incident.release,
         count=ctx["count"],
         users=ctx["users"],
+        impact=impact,
         frames=ctx["frames"],
         repo=settings.github_repo,
         resolved=incident.status == "resolved",
