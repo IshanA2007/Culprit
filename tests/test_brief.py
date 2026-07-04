@@ -91,6 +91,27 @@ def test_brief_renders_ranked_hypotheses_never_a_single_answer():
     assert "1." in content and "2." in content
 
 
+def test_brief_cites_similar_past_incidents():
+    ctx = BriefContext(
+        title="x",
+        verdict="culprit",
+        abstain_kind=None,
+        reason="r",
+        ranked=[{"sha": "abc123", "score": 5.0, "reason": "changes template"}],
+        similar=[{"id": 7, "title": "NoReverseMatch: boom", "distance": 0.02}],
+    )
+    content = render_brief(ctx)["content"]
+    assert "Similar past incidents" in content
+    assert "#7" in content
+
+
+def test_brief_omits_similar_section_when_none():
+    ctx = BriefContext(
+        title="x", verdict="abstain", abstain_kind="low_confidence", reason="r"
+    )
+    assert "Similar past incidents" not in render_brief(ctx)["content"]
+
+
 def test_brief_impact_states_methodology():
     from culprit.impact import compute_impact
 

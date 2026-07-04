@@ -40,7 +40,9 @@ jobs:
 
     services:
       postgres:
-        image: postgres:17
+        # pgvector/pgvector:pg17 — drop-in for postgres:17 with the `vector`
+        # extension (plan decision 13). CI stays secretless-green.
+        image: pgvector/pgvector:pg17
         env:
           POSTGRES_USER: culprit
           POSTGRES_PASSWORD: culprit

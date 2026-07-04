@@ -26,6 +26,7 @@ from culprit.ranking import (
     rank,
 )
 from culprit.runbooks import Runbook, load_runbooks
+from culprit.similar import find_similar
 
 
 async def _signals(session: AsyncSession, incident_id: int) -> list[Signal]:
@@ -170,6 +171,19 @@ async def _offer_runbook(
     return next((r for r in corpus if r.id == rid), None)
 
 
+async def _similar_incidents(
+    similar, session, incident: Incident, ctx: dict
+) -> list[dict]:
+    """Embed this incident (once) and cite nearest prior incidents (gated)."""
+    if similar is None or not getattr(similar, "enabled", False):
+        return []
+    if incident.embedding is None:
+        incident.embedding = await similar.embed_incident(ctx["title"], ctx["frames"])
+    if incident.embedding is None:
+        return []
+    return await find_similar(session, list(incident.embedding), exclude_id=incident.id)
+
+
 async def run_pipeline(
     session: AsyncSession,
     incident: Incident,
@@ -178,6 +192,7 @@ async def run_pipeline(
     llm=None,
     discord=None,
     runbook_selector=None,
+    similar=None,
     settings=None,
 ) -> tuple[RankingResult, dict]:
     """Analyse, render, and post/edit the brief. Returns (result, brief payload)."""
@@ -219,6 +234,8 @@ async def run_pipeline(
     if llm is not None and getattr(llm, "enabled", False):
         narrative = await llm.phrase_diagnosis(diagnosis)
 
+    similar_matches = await _similar_incidents(similar, session, incident, ctx)
+
     brief_ctx = BriefContext(
         title=ctx["title"],
         verdict=result.verdict,
@@ -238,6 +255,7 @@ async def run_pipeline(
         runbook_id=runbook.id if runbook else None,
         runbook_title=runbook.title if runbook else None,
         runbook_summary=runbook.summary if runbook else None,
+        similar=similar_matches,
     )
     payload = render_brief(brief_ctx)
 

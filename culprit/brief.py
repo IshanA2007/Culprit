@@ -38,6 +38,8 @@ class BriefContext:
     runbook_id: str | None = None
     runbook_title: str | None = None
     runbook_summary: str | None = None
+    # Similar past incidents (plan decision 13) — [{id, title, distance}].
+    similar: list[dict] = field(default_factory=list)
 
 
 def _impact_line(ctx: BriefContext) -> str:
@@ -72,6 +74,17 @@ def _diagnosis_lines(ctx: BriefContext) -> list[str]:
         )
         lines.append(f"{i}. _[{h.confidence} confidence]_ {h.statement}{cite}")
     return lines
+
+
+def _similar_lines(ctx: BriefContext) -> list[str]:
+    """Cite the nearest prior incidents (empty when none / search inert)."""
+    if not ctx.similar:
+        return []
+    cites = ", ".join(
+        f"#{m['id']}" + (f" ({m['title']})" if m.get("title") else "")
+        for m in ctx.similar
+    )
+    return [f"**Similar past incidents:** {cites}"]
 
 
 def _runbook_lines(ctx: BriefContext) -> list[str]:
@@ -118,6 +131,7 @@ def render_brief(ctx: BriefContext) -> dict:
     lines.extend(_diagnosis_lines(ctx))
     lines.append(_impact_line(ctx))
     lines.extend(_runbook_lines(ctx))
+    lines.extend(_similar_lines(ctx))
     if ctx.release:
         lines.append(f"**Release:** `{ctx.release[:8]}`")
     if not ctx.resolved:

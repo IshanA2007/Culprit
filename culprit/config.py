@@ -46,6 +46,10 @@ class Settings(BaseSettings):
     discord_webhook_url: str | None = None
     anthropic_api_key: str | None = None
 
+    # Similar-incident embeddings via Voyage (Anthropic's recommended provider).
+    # Absent -> similar-incident search is inert and its live tests skip.
+    voyage_api_key: str | None = None
+
     # Correlation window (dedup): the first qualifying signal opens an incident;
     # same-correlation-key signals within this many seconds join it (HANDOFF §4).
     correlation_window_seconds: int = 600

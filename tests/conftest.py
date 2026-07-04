@@ -51,6 +51,9 @@ def _test_database():
 
         engine = make_engine(TEST_URL)
         async with engine.begin() as conn:
+            # incidents.embedding is a pgvector column, so the type must exist
+            # before create_all (the migration does this for the real DB).
+            await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
             await conn.run_sync(Base.metadata.create_all)
         await engine.dispose()
 
