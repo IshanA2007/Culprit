@@ -1,19 +1,42 @@
 """FastAPI application — the ingest surface.
 
-Task 1 ships ``/health`` only. Tasks 3–4 add ``POST /ingest/sentry`` and
-``POST /ingest/github`` (verify signature -> parse -> persist -> maybe open an
-incident). The recorded webhook envelope (``harness/recorder/app.py``) is the
-seed of this contract: live endpoints receive the same raw bytes the recorder
-captured, verify the HMAC, then parse.
+Endpoints receive raw webhook bytes exactly as the M1 recorder captured them
+(``harness/recorder/app.py``): verify the HMAC over the raw body, then parse.
+Tasks 3–4 add ``POST /ingest/sentry`` and ``POST /ingest/github``; correlation
+(Task 5) and the analysis loop hang off the persisted rows.
 """
 
 from __future__ import annotations
 
-from fastapi import FastAPI
+from datetime import UTC, datetime
+from typing import Annotated
+
+from fastapi import Depends, FastAPI, HTTPException, Request
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from culprit.config import get_settings
+from culprit.db import get_session
+from culprit.ingest.sentry import ingest_sentry
+from culprit.signatures import verify_sentry
 
 app = FastAPI(title="Culprit")
+
+# FastAPI dependency alias — Annotated form keeps Depends() out of arg defaults.
+SessionDep = Annotated[AsyncSession, Depends(get_session)]
 
 
 @app.get("/health")
 async def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@app.post("/ingest/sentry")
+async def ingest_sentry_route(request: Request, session: SessionDep) -> dict:
+    raw = await request.body()
+    signature = request.headers.get("sentry-hook-signature")
+    secret = get_settings().sentry_client_secret
+    if not verify_sentry(secret, raw, signature):
+        raise HTTPException(status_code=401, detail="invalid Sentry signature")
+
+    signal = await ingest_sentry(session, raw, datetime.now(UTC))
+    return {"signal_id": signal.id if signal else None}

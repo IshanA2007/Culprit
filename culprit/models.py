@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -53,9 +53,7 @@ class Incident(Base):
     )
     status: Mapped[str] = mapped_column(String(16), default="open")  # open | resolved
     release: Mapped[str | None] = mapped_column(String(64), nullable=True)
-    correlation_key: Mapped[str | None] = mapped_column(
-        String(255), nullable=True, index=True
-    )
+    correlation_key: Mapped[str | None] = mapped_column(Text, nullable=True, index=True)
     severity: Mapped[int | None] = mapped_column(Integer, nullable=True)
     deploy_id: Mapped[int | None] = mapped_column(
         ForeignKey("deploys.id"), nullable=True
@@ -85,7 +83,7 @@ class Signal(Base):
     kind: Mapped[str] = mapped_column(String(32))  # event_alert | issue
     dedup_key: Mapped[str] = mapped_column(String(255), unique=True, index=True)
     release: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
-    fingerprint: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    fingerprint: Mapped[str | None] = mapped_column(Text, nullable=True)
     frames: Mapped[list] = mapped_column(
         JSONB, default=list
     )  # [{file, lineno, function}]

@@ -1,8 +1,8 @@
 """baseline schema: deploys signals incidents evidence jobs
 
-Revision ID: e9046a0c0243
+Revision ID: e989c92f40f8
 Revises:
-Create Date: 2026-07-04 14:26:37.427643
+Create Date: 2026-07-04 14:34:43.899959
 
 """
 
@@ -13,7 +13,7 @@ from alembic import op
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = "e9046a0c0243"
+revision: str = "e989c92f40f8"
 down_revision: str | Sequence[str] | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -41,7 +41,7 @@ def upgrade() -> None:
         sa.Column("opened_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("status", sa.String(length=16), nullable=False),
         sa.Column("release", sa.String(length=64), nullable=True),
-        sa.Column("correlation_key", sa.String(length=255), nullable=True),
+        sa.Column("correlation_key", sa.Text(), nullable=True),
         sa.Column("severity", sa.Integer(), nullable=True),
         sa.Column("deploy_id", sa.Integer(), nullable=True),
         sa.Column("verdict", sa.String(length=16), nullable=True),
@@ -99,7 +99,7 @@ def upgrade() -> None:
         sa.Column("kind", sa.String(length=32), nullable=False),
         sa.Column("dedup_key", sa.String(length=255), nullable=False),
         sa.Column("release", sa.String(length=64), nullable=True),
-        sa.Column("fingerprint", sa.String(length=255), nullable=True),
+        sa.Column("fingerprint", sa.Text(), nullable=True),
         sa.Column("frames", postgresql.JSONB(astext_type=sa.Text()), nullable=False),
         sa.Column("count", sa.Integer(), nullable=True),
         sa.Column("users", sa.Integer(), nullable=True),
