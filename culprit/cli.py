@@ -1,8 +1,10 @@
 """``culprit`` CLI — the service's operational entrypoints.
 
-    culprit serve      run the FastAPI app (uvicorn)
-    culprit migrate    alembic upgrade head
-    culprit eval       replay the M1 corpus and score (added in Task 9)
+    culprit serve       run the FastAPI app (uvicorn)
+    culprit migrate     alembic upgrade head
+    culprit resolve     mark an incident resolved (capture the fixing commit)
+    culprit postmortem  render a postmortem (dry-run) or open its PR (--open)
+    culprit eval        replay the corpus and score (M3 numbers + M4 completeness)
 
 Mirrors ``harness/cli.py``'s argparse style.
 """
@@ -58,6 +60,58 @@ def _cmd_resolve(args: argparse.Namespace) -> int:
                 f"resolved incident {incident.id}: status={incident.status} "
                 f"fixing_commit={fix}"
             )
+            return 0
+
+    return asyncio.run(_run())
+
+
+def _cmd_postmortem(args: argparse.Namespace) -> int:
+    import asyncio
+    from pathlib import Path
+
+    from culprit.config import get_settings
+    from culprit.db import get_sessionmaker
+    from culprit.models import Incident
+    from culprit.postmortem import draft_postmortem, publish_postmortem
+
+    async def _run() -> int:
+        settings = get_settings()
+        repo = settings.postmortems_repo or settings.github_repo
+        base = settings.postmortems_base_branch
+        maker = get_sessionmaker()
+        async with maker() as session:
+            incident = await session.get(Incident, args.incident_id)
+            if incident is None:
+                print(f"incident {args.incident_id} not found")
+                return 1
+            if args.open:
+                # Open a real PR via the GitHub App (inert -> stays dry-run).
+                from culprit.github_app import GitHubAppWriter
+
+                key = settings.github_app_private_key or (
+                    Path(settings.github_app_private_key_path).read_text()
+                    if settings.github_app_private_key_path
+                    else None
+                )
+                writer = GitHubAppWriter(
+                    settings.github_app_id,
+                    key,
+                    settings.github_app_installation_id,
+                    repo,
+                )
+                try:
+                    row = await publish_postmortem(
+                        session, incident, writer=writer, repo=repo, default_branch=base
+                    )
+                finally:
+                    await writer.aclose()
+                print(f"postmortem {row.state}: {row.pr_url or row.path}")
+            else:
+                # Dry-run: render the Markdown (+ PR request) without pushing.
+                row = await draft_postmortem(
+                    session, incident, repo=repo, default_branch=base
+                )
+                print(row.body)
             return 0
 
     return asyncio.run(_run())
@@ -156,6 +210,17 @@ def build_parser() -> argparse.ArgumentParser:
     p_resolve = sub.add_parser("resolve", help="mark an incident resolved")
     p_resolve.add_argument("incident_id", type=int)
     p_resolve.set_defaults(func=_cmd_resolve)
+
+    p_pm = sub.add_parser(
+        "postmortem", help="render a postmortem (dry-run) or open its PR (--open)"
+    )
+    p_pm.add_argument("incident_id", type=int)
+    p_pm.add_argument(
+        "--open",
+        action="store_true",
+        help="open the PR via the GitHub App (inert without App creds -> dry-run)",
+    )
+    p_pm.set_defaults(func=_cmd_postmortem)
 
     p_eval = sub.add_parser("eval", help="replay the M1 corpus and score")
     p_eval.add_argument(
