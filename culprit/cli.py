@@ -38,6 +38,31 @@ def _cmd_migrate(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_resolve(args: argparse.Namespace) -> int:
+    import asyncio
+
+    from culprit.db import get_sessionmaker
+    from culprit.models import Incident
+    from culprit.resolution import resolve_incident
+
+    async def _run() -> int:
+        maker = get_sessionmaker()
+        async with maker() as session:
+            incident = await session.get(Incident, args.incident_id)
+            if incident is None:
+                print(f"incident {args.incident_id} not found")
+                return 1
+            await resolve_incident(session, incident, source="manual")
+            fix = incident.fixing_sha[:8] if incident.fixing_sha else "none (infra)"
+            print(
+                f"resolved incident {incident.id}: status={incident.status} "
+                f"fixing_commit={fix}"
+            )
+            return 0
+
+    return asyncio.run(_run())
+
+
 def _cmd_eval(args: argparse.Namespace) -> int:
     import asyncio
     import json as _json
@@ -112,6 +137,10 @@ def build_parser() -> argparse.ArgumentParser:
     p_migrate = sub.add_parser("migrate", help="alembic upgrade to a revision")
     p_migrate.add_argument("revision", nargs="?", default="head")
     p_migrate.set_defaults(func=_cmd_migrate)
+
+    p_resolve = sub.add_parser("resolve", help="mark an incident resolved")
+    p_resolve.add_argument("incident_id", type=int)
+    p_resolve.set_defaults(func=_cmd_resolve)
 
     p_eval = sub.add_parser("eval", help="replay the M1 corpus and score")
     p_eval.add_argument(

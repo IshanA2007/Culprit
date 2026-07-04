@@ -99,6 +99,32 @@ async def ingest_sentry_route(
     }
 
 
+@app.post("/incidents/{incident_id}/resolve")
+async def resolve_incident_route(
+    incident_id: int, session: SessionDep, background_tasks: BackgroundTasks
+) -> dict:
+    """Operator-triggered resolution (a maintainer typed `resolve`).
+
+    Flips the incident to resolved, captures the fixing commit from the deploy
+    feed, and (when autorun is on) re-renders the living brief with `resolved`.
+    """
+    from culprit.models import Incident
+    from culprit.resolution import resolve_incident
+
+    incident = await session.get(Incident, incident_id)
+    if incident is None:
+        raise HTTPException(status_code=404, detail="incident not found")
+
+    await resolve_incident(session, incident, source="manual")
+    _schedule_pipeline(background_tasks, incident.id, get_settings())
+    return {
+        "incident_id": incident.id,
+        "status": incident.status,
+        "fixing_sha": incident.fixing_sha,
+        "resolution_source": incident.resolution_source,
+    }
+
+
 @app.post("/ingest/github")
 async def ingest_github_route(request: Request, session: SessionDep) -> dict:
     raw = await request.body()
