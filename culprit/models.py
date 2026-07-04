@@ -62,6 +62,9 @@ class Incident(Base):
         String(16), nullable=True
     )  # culprit|abstain
     ranked: Mapped[list] = mapped_column(JSONB, default=list)  # [{sha, score, reason}]
+    # Ranked hypotheses + offered runbook + impact snapshot (plan decision 14 —
+    # the M4 postmortem input). Additive; no signals-schema change (decision 1).
+    diagnosis: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     brief_message_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
 
     deploy: Mapped[Deploy | None] = relationship()

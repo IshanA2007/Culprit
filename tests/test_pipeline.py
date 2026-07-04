@@ -131,6 +131,24 @@ async def test_pipeline_offers_runbook_when_selector_enabled(db_session):
     assert "Roll back a bad deploy" in payload["content"]  # resolved from corpus
 
 
+async def test_pipeline_persists_diagnosis_for_m4(db_session):
+    incident = await _preset_culprit_incident(db_session)
+    await run_pipeline(db_session, incident, github=None, discord=_FakeDiscord())
+    # incidents.diagnosis (hypotheses + runbook + impact snapshot) — the M4 input
+    assert incident.diagnosis
+    assert incident.diagnosis["hypotheses"]
+    assert incident.diagnosis["hypotheses"][0]["kind"] == "code_culprit"
+    assert "impact" in incident.diagnosis
+
+
+async def test_pipeline_brief_renders_diagnosis_section(db_session):
+    incident = await _preset_culprit_incident(db_session)
+    _, payload = await run_pipeline(
+        db_session, incident, github=None, discord=_FakeDiscord()
+    )
+    assert "Diagnosis" in payload["content"]
+
+
 async def test_pipeline_omits_runbook_without_selector(db_session):
     incident = await _preset_culprit_incident(db_session)
     _, payload = await run_pipeline(

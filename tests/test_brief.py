@@ -54,6 +54,43 @@ def test_abstention_brief_reads_infrastructural():
     assert "failed request" in content
 
 
+def test_brief_renders_ranked_hypotheses_never_a_single_answer():
+    from culprit.diagnosis import build_diagnosis
+    from culprit.ranking import Candidate, RankingResult
+
+    top = Candidate(
+        sha="e0a08029ab12",
+        score=7.0,
+        token_hits=1,
+        file_overlap=1,
+        stem_overlap=1,
+        blame_hits=0,
+        comment_only=False,
+        files=["course_instructor.py"],
+        reason="changes course_instructor.py (in the stack trace)",
+    )
+    result = RankingResult("culprit", None, [top], "Suspect e0a08029: ...")
+    diag = build_diagnosis(
+        result,
+        error_type="NoReverseMatch",
+        evidence=[{"id": 11, "commit_sha": "e0a08029ab12", "kind": "diff"}],
+    )
+    ctx = BriefContext(
+        title="x",
+        verdict="culprit",
+        abstain_kind=None,
+        reason="r",
+        ranked=[{"sha": "e0a08029ab12", "score": 7.0, "reason": "changes template"}],
+        diagnosis=diag,
+    )
+    content = render_brief(ctx)["content"]
+    assert "Diagnosis" in content
+    assert "confidence" in content.lower()
+    assert "#11" in content  # cites the evidence row id
+    # ranked hypotheses -> more than one line under Diagnosis (never a single answer)
+    assert "1." in content and "2." in content
+
+
 def test_brief_impact_states_methodology():
     from culprit.impact import compute_impact
 

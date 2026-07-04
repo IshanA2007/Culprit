@@ -14,9 +14,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from culprit.brief import BriefContext, render_brief
 from culprit.config import get_settings
 from culprit.deploys import reconstruct_window
+from culprit.diagnosis import build_diagnosis
 from culprit.evidence import gather_evidence
 from culprit.impact import compute_impact
-from culprit.models import Deploy, Incident, Signal
+from culprit.models import Deploy, Evidence, Incident, Signal
 from culprit.ranking import (
     Candidate,
     RankingResult,
@@ -192,6 +193,32 @@ async def run_pipeline(
 
     runbook = await _offer_runbook(runbook_selector, result, ctx)
 
+    # Ranked hypotheses citing the persisted evidence rows (plan decision 14).
+    evidence_rows = (
+        (
+            await session.execute(
+                select(Evidence).where(Evidence.incident_id == incident.id)
+            )
+        )
+        .scalars()
+        .all()
+    )
+    diagnosis = build_diagnosis(
+        result,
+        error_type=ctx["error_type"],
+        evidence=[
+            {"id": e.id, "commit_sha": e.commit_sha, "kind": e.kind}
+            for e in evidence_rows
+        ],
+        runbook_id=runbook.id if runbook else None,
+        impact=impact,
+    )
+    incident.diagnosis = diagnosis.as_dict()
+
+    narrative = None
+    if llm is not None and getattr(llm, "enabled", False):
+        narrative = await llm.phrase_diagnosis(diagnosis)
+
     brief_ctx = BriefContext(
         title=ctx["title"],
         verdict=result.verdict,
@@ -203,6 +230,8 @@ async def run_pipeline(
         count=ctx["count"],
         users=ctx["users"],
         impact=impact,
+        diagnosis=diagnosis,
+        diagnosis_narrative=narrative,
         frames=ctx["frames"],
         repo=settings.github_repo,
         resolved=incident.status == "resolved",

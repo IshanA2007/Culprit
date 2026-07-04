@@ -13,6 +13,7 @@ from dataclasses import dataclass, field
 
 import httpx
 
+from culprit.diagnosis import Diagnosis
 from culprit.impact import Impact, compute_impact
 
 
@@ -28,6 +29,8 @@ class BriefContext:
     count: int | None = None
     users: int | None = None
     impact: Impact | None = None  # deterministic, method-stated (plan decision 10)
+    diagnosis: Diagnosis | None = None  # ranked hypotheses (plan decision 14)
+    diagnosis_narrative: str | None = None  # LLM phrasing only (never the verdict)
     frames: list[dict] = field(default_factory=list)
     repo: str = ""
     resolved: bool = False
@@ -51,6 +54,24 @@ def _frames_line(frames: list[dict]) -> str:
         f"`{f.get('file')}:{f.get('lineno')}`" for f in frames if f.get("file")
     )
     return f"**Stack frames:** {cited}" if cited else ""
+
+
+def _diagnosis_lines(ctx: BriefContext) -> list[str]:
+    """Ranked hypotheses with confidence + cited evidence — never a single answer."""
+    diag = ctx.diagnosis
+    if not diag or not diag.hypotheses:
+        return []
+    lines = ["**Diagnosis — ranked hypotheses:**"]
+    if ctx.diagnosis_narrative:
+        lines.append(f"_{ctx.diagnosis_narrative}_")
+    for i, h in enumerate(diag.hypotheses, 1):
+        cite = (
+            " (evidence " + ", ".join(f"#{e}" for e in h.evidence_ids) + ")"
+            if h.evidence_ids
+            else ""
+        )
+        lines.append(f"{i}. _[{h.confidence} confidence]_ {h.statement}{cite}")
+    return lines
 
 
 def _runbook_lines(ctx: BriefContext) -> list[str]:
@@ -94,6 +115,7 @@ def render_brief(ctx: BriefContext) -> dict:
         if ctx.rationale:
             lines.append(ctx.rationale)
 
+    lines.extend(_diagnosis_lines(ctx))
     lines.append(_impact_line(ctx))
     lines.extend(_runbook_lines(ctx))
     if ctx.release:

@@ -59,6 +59,18 @@ class Impact:
             )
         return "**Impact:** " + " · ".join(parts)
 
+    def as_dict(self) -> dict:
+        """JSON-serializable snapshot (the diagnosis / M4 postmortem input)."""
+
+        def _m(m: ImpactMetric | None) -> dict | None:
+            return {"value": m.value, "method": m.method} if m else None
+
+        return {
+            "failed_requests": _m(self.failed_requests),
+            "affected_users": _m(self.affected_users),
+            "window": self.window,
+        }
+
     def summary(self) -> str:
         """Plain-text one-liner for the LLM rationale prompt (no markdown)."""
         fr = self.failed_requests.value if self.failed_requests else 0

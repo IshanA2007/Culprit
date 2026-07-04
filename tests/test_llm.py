@@ -92,6 +92,24 @@ async def test_select_runbook_disabled_without_key_returns_none():
     assert out is None
 
 
+async def test_phrase_diagnosis_disabled_without_key_returns_none():
+    from culprit.diagnosis import build_diagnosis
+
+    diag = build_diagnosis(_culprit_result(), error_type="NoReverseMatch")
+    llm = LLM(api_key=None)
+    assert await llm.phrase_diagnosis(diag) is None
+
+
+@requires_key
+async def test_phrase_diagnosis_returns_a_narrative():
+    from culprit.diagnosis import build_diagnosis
+
+    diag = build_diagnosis(_culprit_result(), error_type="NoReverseMatch")
+    llm = LLM(api_key=API_KEY)
+    text = await llm.phrase_diagnosis(diag)
+    assert isinstance(text, str) and text.strip()
+
+
 @requires_key
 async def test_selector_picks_redis_runbook_for_a_redis_down_incident():
     llm = LLM(api_key=API_KEY)

@@ -120,6 +120,37 @@ class LLM:
         ).strip()
         return coerce_runbook_id(raw, valid_ids)
 
+    async def phrase_diagnosis(self, diagnosis) -> str | None:
+        """One-sentence narrative over the deterministic hypotheses (phrasing only).
+
+        The hypotheses, confidences, and evidence citations are authoritative and
+        computed deterministically (``culprit/diagnosis.py``); Sonnet only writes a
+        readable lead sentence. It must not introduce a new suspect or a verdict.
+        """
+        if not self._client or not diagnosis.hypotheses:
+            return None
+        lines = "\n".join(
+            f"- [{h.confidence}] {h.statement}" for h in diagnosis.hypotheses
+        )
+        prompt = (
+            "These ranked incident hypotheses are already decided. Write ONE "
+            "plain sentence summarizing them for an on-call engineer. Do not add a "
+            "new suspect, do not pick a single answer, do not restate every "
+            f"hypothesis verbatim.\n\n{lines}"
+        )
+        resp = await self._client.messages.create(
+            model=self.model,
+            max_tokens=120,
+            system=(
+                "You are Culprit. You phrase already-decided diagnoses; you never "
+                "change or narrow the verdict."
+            ),
+            messages=[{"role": "user", "content": prompt}],
+        )
+        return "".join(
+            block.text for block in resp.content if block.type == "text"
+        ).strip()
+
     async def summarize(self, text: str) -> str | None:
         """Cheap Haiku summary (e.g. a long incident timeline)."""
         if not self._client:
