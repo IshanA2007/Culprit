@@ -9,34 +9,71 @@ range:
     sentry-cli releases set-commits <HEAD> --local
     sentry-cli releases finalize <HEAD>
 
-Invariant asserted here: at least one commit with a non-empty patch_set is
-associated (``--local`` requires a full, non-shallow clone). If not, the run
-fails loudly rather than recording a release with no commit range.
+Invariant asserted here: at least one commit is associated with the release
+(``--local`` requires a full, non-shallow clone — the working clone is full). If
+zero commits associate, the run fails loudly rather than recording a release
+with no candidate range.
 
-STATUS: skeleton — the eval-critical invariant (culprit ∈ release range, never
-release == culprit) is enforced by the runner + Task 9 tests; this module shells
-out to sentry-cli, which needs the Sentry account (an ask-boundary).
+Runtime env: SENTRY_AUTH_TOKEN, SENTRY_ORG, SENTRY_PROJECT (sentry-cli reads
+these); SENTRY_URL defaults to https://sentry.io.
 """
 
 from __future__ import annotations
 
+import os
 import subprocess
 from pathlib import Path
+
+import httpx
 
 from harness.config import TCF_WORK_DIR
 
 
-def associate_release(head_sha: str, *, cwd: Path = TCF_WORK_DIR) -> int:
-    """Create + set-commits --local + finalize. Returns # commits associated.
-
-    Raises if zero commits with a patch_set were associated (a shallow clone or
-    a misconfigured org would silently produce an empty range otherwise).
-    """
-    raise NotImplementedError(
-        "associate_release shells out to sentry-cli — needs the Sentry account "
-        "and SENTRY_AUTH_TOKEN (plan Task 4, ask-boundary)"
-    )
-
-
 def _sentry_cli(*args: str, cwd: Path = TCF_WORK_DIR) -> str:
-    return subprocess.check_output(["sentry-cli", *args], cwd=cwd, text=True).strip()
+    return subprocess.run(
+        ["sentry-cli", *args], cwd=cwd, text=True, capture_output=True, check=True
+    ).stdout.strip()
+
+
+def associate_release(head_sha: str, *, cwd: Path = TCF_WORK_DIR) -> int:
+    """new + set-commits --local + finalize. Returns # commits associated.
+
+    Raises if zero commits associate (a shallow clone or a misconfigured org
+    would otherwise silently produce a release with an empty candidate range).
+    """
+    _sentry_cli("releases", "new", head_sha, cwd=cwd)
+    _sentry_cli("releases", "set-commits", head_sha, "--local", cwd=cwd)
+    _sentry_cli("releases", "finalize", head_sha, cwd=cwd)
+
+    n = count_associated_commits(head_sha)
+    if n < 1:
+        raise RuntimeError(
+            f"release {head_sha[:12]} associated 0 commits — set-commits --local "
+            "found no range (shallow clone? wrong org/project?)"
+        )
+    return n
+
+
+def count_associated_commits(version: str) -> int:
+    """Count commits Sentry has associated with the release, via its API."""
+    org = os.environ["SENTRY_ORG"]
+    token = os.environ["SENTRY_AUTH_TOKEN"]
+    base = os.environ.get("SENTRY_URL", "https://sentry.io").rstrip("/")
+    url = f"{base}/api/0/organizations/{org}/releases/{version}/commits/"
+    resp = httpx.get(url, headers={"Authorization": f"Bearer {token}"}, timeout=15)
+    resp.raise_for_status()
+    return len(resp.json())
+
+
+def resolve_issue(issue_id: str) -> None:
+    """Resolve/delete a fault's issue between runs so the per-issue alert
+    action-interval (~5 min) doesn't suppress the next run's webhook."""
+    org = os.environ["SENTRY_ORG"]
+    token = os.environ["SENTRY_AUTH_TOKEN"]
+    base = os.environ.get("SENTRY_URL", "https://sentry.io").rstrip("/")
+    httpx.put(
+        f"{base}/api/0/organizations/{org}/issues/{issue_id}/",
+        headers={"Authorization": f"Bearer {token}"},
+        json={"status": "resolved"},
+        timeout=15,
+    ).raise_for_status()
