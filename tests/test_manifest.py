@@ -19,7 +19,9 @@ def test_every_code_fault_patch_exists_on_disk():
     for f in FAULTS:
         if f.fault_class is FaultClass.CODE:
             p = f.patch_path
-            assert p and p.exists(), f"{f.id}: patch {f.patch} missing under {FAULTS_DIR}"
+            assert p and p.exists(), (
+                f"{f.id}: patch {f.patch} missing under {FAULTS_DIR}"
+            )
 
 
 def test_ids_unique():
@@ -50,7 +52,10 @@ def test_class_specific_rules():
     for f in FAULTS:
         if f.fault_class is FaultClass.CODE:
             assert f.patch and f.ground_truth is GroundTruth.CULPRIT_COMMIT
-            assert f.expected_signal in (ExpectedSignal.EVENT_ALERT, ExpectedSignal.LOGS)
+            assert f.expected_signal in (
+                ExpectedSignal.EVENT_ALERT,
+                ExpectedSignal.LOGS,
+            )
             assert f.trigger, f"{f.id}: code fault needs trigger requests"
         elif f.fault_class is FaultClass.INFRA:
             assert f.docker_action and f.ground_truth is GroundTruth.ABSTAIN

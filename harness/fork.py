@@ -143,7 +143,9 @@ def build_window(
     )
 
 
-def tag_and_push(window: BuiltWindow, *, remote: str = "origin", cwd: Path = TCF_WORK_DIR) -> list[str]:
+def tag_and_push(
+    window: BuiltWindow, *, remote: str = "origin", cwd: Path = TCF_WORK_DIR
+) -> list[str]:
     """Tag every window commit and push branch + tags to the fork. Retained refs.
 
     Returns the created tag names. Tags guarantee the SHAs stay fetchable for M2

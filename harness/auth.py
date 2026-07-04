@@ -70,7 +70,16 @@ class Session:
 def provision_session(container: str = HARNESS_WEB_CONTAINER) -> Session:
     """Create a logged-in Django session in the harness DB, bypassing Cognito."""
     proc = subprocess.run(
-        ["docker", "exec", container, "python", "manage.py", "shell", "-c", _SHELL_SNIPPET],
+        [
+            "docker",
+            "exec",
+            container,
+            "python",
+            "manage.py",
+            "shell",
+            "-c",
+            _SHELL_SNIPPET,
+        ],
         text=True,
         capture_output=True,
         check=True,
@@ -80,6 +89,10 @@ def provision_session(container: str = HARNESS_WEB_CONTAINER) -> Session:
         None,
     )
     if not line:
-        raise RuntimeError(f"session provisioning produced no marker:\n{proc.stdout}\n{proc.stderr}")
+        raise RuntimeError(
+            f"session provisioning produced no marker:\n{proc.stdout}\n{proc.stderr}"
+        )
     data = json.loads(line.removeprefix("CULPRIT_SESSION="))
-    return Session(sessionid=data["sessionid"], username=data["username"], user_id=data["user_id"])
+    return Session(
+        sessionid=data["sessionid"], username=data["username"], user_id=data["user_id"]
+    )
