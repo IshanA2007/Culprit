@@ -21,3 +21,4 @@ decoy_config:
 fixture_paths: []
 log_paths:
 - fixtures/logs/20260704T035903-cartesian-join-gpa-annotation-timeout-w1-web.log
+deploy: fixtures/github/workflow_run/20260704T035903-7dd03ad3.json

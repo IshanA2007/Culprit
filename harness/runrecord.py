@@ -54,6 +54,11 @@ class RunRecord:
     fixture_paths: list[str] = field(default_factory=list)
     log_paths: list[str] = field(default_factory=list)
 
+    # The deploy that shipped this window: a GitHub workflow_run ("AWS Deployment")
+    # fixture whose head_sha == release_sha. This is the deploy-timeline half of
+    # the M2 ingest contract (see harness/deployfeed.py). None until backfilled.
+    deploy: str | None = None
+
     def culprit_in_window(self) -> bool:
         return any(c.is_culprit and c.sha == self.culprit_sha for c in self.window)
 

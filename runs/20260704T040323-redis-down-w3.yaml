@@ -36,3 +36,4 @@ fixture_paths:
 - fixtures/sentry/issue/20260704T040406230674-9bcdb7f7.json
 log_paths:
 - fixtures/logs/20260704T040323-redis-down-w3-web.log
+deploy: fixtures/github/workflow_run/20260704T040323-9ad8dd68.json

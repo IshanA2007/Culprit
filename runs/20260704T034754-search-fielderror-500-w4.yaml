@@ -38,3 +38,4 @@ fixture_paths:
 - fixtures/sentry/issue/20260704T034829315185-10f2071c.json
 log_paths:
 - fixtures/logs/20260704T034754-search-fielderror-500-w4-web.log
+deploy: fixtures/github/workflow_run/20260704T034754-e346dd9a.json

@@ -37,3 +37,4 @@ decoy_config:
 fixture_paths: []
 log_paths:
 - fixtures/logs/20260704T035834-n-plus-one-section-instructor-prefetch-w4-web.log
+deploy: fixtures/github/workflow_run/20260704T035834-2de67497.json

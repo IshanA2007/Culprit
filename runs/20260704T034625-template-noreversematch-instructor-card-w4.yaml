@@ -39,3 +39,4 @@ fixture_paths:
 - fixtures/sentry/issue/20260704T034701899798-1bcda19c.json
 log_paths:
 - fixtures/logs/20260704T034625-template-noreversematch-instructor-card-w4-web.log
+deploy: fixtures/github/workflow_run/20260704T034625-e5d07295.json

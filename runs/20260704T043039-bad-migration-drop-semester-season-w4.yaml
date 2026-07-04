@@ -39,3 +39,4 @@ fixture_paths:
 - fixtures/sentry/issue/20260704T043119325561-f5403267.json
 log_paths:
 - fixtures/logs/20260704T043039-bad-migration-drop-semester-season-w4-web.log
+deploy: fixtures/github/workflow_run/20260704T043039-de60f4fc.json

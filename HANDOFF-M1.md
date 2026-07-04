@@ -29,6 +29,7 @@ A production-faithful fork of **theCourseForum2** running locally under Docker +
 | Infra abstention faults | **3 runs** | redis-down, db-stopped, gunicorn-oom |
 | Benign-deploy baseline | **1 run** | negative control (false-positive anchor) |
 | Sentry webhooks | **26** | `fixtures/sentry/{event_alert,issue}/` — event_alert has stack frames, issue has counts |
+| GitHub deploy webhooks | **22** | `fixtures/github/workflow_run/` — one `workflow_run` ("AWS Deployment") per run; `head_sha` == that run's `release_sha` (deploy-feed ingest contract) |
 | Log captures | **22** | `fixtures/logs/` — gunicorn/docker stderr (silent-fault evidence) |
 
 **Every run record** (`runs/<ts>-<fault>-w<n>.yaml`) is the answer key: base SHA, the ordered window commits (each flagged `is_culprit`/`is_decoy`), the `release_sha` (= window head), `ground_truth` (`culprit_commit` / `abstain` / `no_incident`), the decoy config, and paths to its fixtures + logs.
@@ -39,7 +40,8 @@ A production-faithful fork of **theCourseForum2** running locally under Docker +
 - Baseline has no culprit.
 - Every recorded SHA is **resolvable on the fork** (M2 reads diffs/blame at these SHAs via the GitHub API — they must stay fetchable; the fork branches + tags are retained).
 - Every webhook's HMAC signature verifies against the Sentry integration Client Secret.
-- No orphaned fixtures (every fixture belongs to a run).
+- No orphaned fixtures (every fixture belongs to a run) — Sentry **and** GitHub deploy fixtures.
+- Every run's deploy `workflow_run.head_sha` equals its `release_sha`, and the deploy feed's `head_branch` never names the culprit (anti-leakage extends to the deploy timeline).
 
 ---
 
@@ -111,8 +113,10 @@ The DB is a prod copy: **21,591 real `@virginia.edu` student emails**, ~1,545 `p
 
 **Done:** all 10 plan tasks — scaffold, fork + seeded local boot, production-faithful Docker profile, Sentry wiring, webhook recorder, 13-fault catalog (9 code + 3 infra + baseline) as verified patches + manifest, scenario runner, the 22-scenario corpus, the fixture/corpus test suite, the runbook.
 
+**Resolved after handoff (2026-07-04) — the `workflow_run` deferral is closed:**
+- **GitHub `workflow_run` / deploy-feed fixtures now exist** (`fixtures/github/workflow_run/`, 22 — one per run). The recording session had no live tunnel, so rather than hand-invent payloads they are **reconstructed shape-faithfully from real data**: the field schema is a real upstream production "AWS Deployment" run (`harness/deployfeed_inputs/template_upstream.json`; key-parity enforced by `tests/test_deployfeed.py`), and `head_sha`/`head_commit`/`repository`/`sender` are the real fork objects — each run's deploy `head_sha` **is** its `release_sha`. Only opaque ids/timestamps are synthesized (deterministically). Generator: `harness/deployfeed.py` (`culprit-harness backfill-deploys`); each run record now carries a `deploy:` link; provenance + field deltas in `fixtures/github/workflow_run/PROVENANCE.md` and `docs/harness.md`. The plan's `fake-deploy.yml` ("AWS Deployment") also now exists at `harness/fork/fake-deploy.yml` (mirrors the real aws.yml's CI-chained trigger, so a **live** capture would carry the same `event: workflow_run` / `head_branch: master`). **Signatures:** a live `workflow_run` webhook was configured on the fork and GitHub was confirmed delivering genuine events to it (deliveries logged 2026-07-04T16:55Z, signed with `CULPRIT_GH_WEBHOOK_SECRET`); that temporary webhook + its `culprit-deploy-feed` branch were then torn down (fork left in its prior state). The committed fixtures are signed with that same genuine fork webhook secret (in `.env`, never committed), so `x-hub-signature-256` verifies exactly as a genuine delivery would — the payload *content* is reconstructed (stamped `reconstructed: true`), the *signature* is against a genuine GitHub webhook secret. To capture a raw GitHub-delivered payload verbatim later, re-establish a webhook, `gh auth refresh -s admin:repo_hook`, and read the delivery log (see PROVENANCE.md).
+
 **Deferred / not done (be honest about these):**
-- **GitHub `workflow_run` / deploy-feed fixtures were NOT recorded.** The plan's Task 8 wanted a `fake-deploy.yml` ("AWS Deployment") workflow on the fork's master to emit real `workflow_run` payloads for the deploy-timeline schema. We disabled the fork's `aws.yml` but did **not** add `fake-deploy.yml`. Today the deploy timeline is captured only in run records (base SHA, window commits, release SHA), not as recorded GitHub Actions webhooks. **M2 will need this** — either record real `workflow_run` payloads or synthesize shape-faithful ones.
 - **Silent faults are excluded from Sentry-driven top-k accuracy** until M3's SNS/CloudWatch ingest exists (they emit no Sentry event by design; their run records carry culprit ground truth, so they join the eval then). This is intended, not a bug — but the published N must state it per class.
 - **Sentry issue-API snapshots** (`count`/`userCount` as standalone secondary fixtures for M3 impact math) weren't captured separately — the `issue` webhook already carries `count`, which suffices for now.
 - A few faults would be caught by tCF's own test suite (`passes_tcf_tests: false` in the manifest) — documented honestly as "requires a test gap to ship."
@@ -125,7 +129,7 @@ The corpus in this repo is M2's input. Per [`HANDOFF.md`](HANDOFF.md) §4/§6, M
 
 - **`fixtures/sentry/*.json` = the `POST /ingest/sentry` contract.** The recorder (`harness/recorder/app.py`) is the seed of the ingest service — it already writes the exact envelope M2 parses (`received_at`, `headers`, raw body). Reuse it.
 - **`runs/*.yaml` = the eval cases** for M2/M5's top-1/top-3 numbers. "Top-3 of what?" is answered by each run's `window` (the recorded candidate commits). Score against `ground_truth` + `culprit_sha`.
-- **First real M2 code:** Sentry webhook → signal/incident model (Postgres) → correlation window → evidence gathering (GitHub diffs/blame at the pinned window SHAs — they're resolvable on the fork) → culprit ranking (or abstain) → chat brief. Build the deploy-timeline table too (needs the deferred `workflow_run` fixtures above).
+- **First real M2 code:** Sentry webhook → signal/incident model (Postgres) → correlation window → evidence gathering (GitHub diffs/blame at the pinned window SHAs — they're resolvable on the fork) → culprit ranking (or abstain) → chat brief. Build the deploy-timeline table too — the `workflow_run` fixtures now exist (`fixtures/github/workflow_run/`; `POST /ingest/github` contract), each keyed by `head_sha` == a run's `release_sha`.
 - **Mirror the toolchain** already established here: uv / ruff / pytest / py3.12, FastAPI, the `harness/manifest.py` + `harness/runrecord.py` contract style.
 
 ---
@@ -143,6 +147,9 @@ harness/
   auth.py           session + CSRF minting (no Cognito)
   traffic.py        throttled httpx trigger driver
   recorder/app.py   FastAPI webhook recorder → raw fixtures  (M2 ingest seed)
+  deployfeed.py     GitHub workflow_run deploy-feed generator (M2 deploy-ingest seed)
+  deployfeed_inputs/ vendored REAL GitHub objects (upstream schema template + fork repo/owner/release commits)
+  fork/fake-deploy.yml "AWS Deployment" workflow — add to fork master for LIVE deploy-feed recording
   scrub.py          fixture PII scrubber (redact emails + re-sign)
   scenarios/
     runner.py       one full scenario (decision-7 sequence)
@@ -151,8 +158,8 @@ harness/
     manifest.yaml   the 13-fault catalog (labels, triggers, windows, notes)
     *.patch         9 verified code-fault diffs
     decoys/         6 benign decoy patches + decoys.yaml
-fixtures/           the recorded corpus (sentry/{event_alert,issue}/, logs/)
-runs/               22 labeled run records (the answer key)
+fixtures/           the recorded corpus (sentry/{event_alert,issue}/, github/workflow_run/, logs/)
+runs/               22 labeled run records (the answer key; each links its deploy)
 tests/              scaffold + manifest + corpus + recorder invariants (22 passing)
 docs/harness.md     runbook
 .harness-work/      gitignored full clone of theCourseForum2 (fork's culprit-harness branch)

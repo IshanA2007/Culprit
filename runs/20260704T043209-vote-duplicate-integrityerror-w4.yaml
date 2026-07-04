@@ -39,3 +39,4 @@ fixture_paths:
 - fixtures/sentry/issue/20260704T043246536317-d0036fc8.json
 log_paths:
 - fixtures/logs/20260704T043209-vote-duplicate-integrityerror-w4-web.log
+deploy: fixtures/github/workflow_run/20260704T043209-395a9b91.json

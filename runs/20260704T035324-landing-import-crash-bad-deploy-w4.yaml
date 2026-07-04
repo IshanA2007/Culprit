@@ -39,3 +39,4 @@ fixture_paths:
 - fixtures/sentry/issue/20260704T035358261287-c88bfa35.json
 log_paths:
 - fixtures/logs/20260704T035324-landing-import-crash-bad-deploy-w4-web.log
+deploy: fixtures/github/workflow_run/20260704T035324-d1a7f165.json

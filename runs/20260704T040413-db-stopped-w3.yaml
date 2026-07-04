@@ -35,3 +35,4 @@ fixture_paths:
 - fixtures/sentry/issue/20260704T040453114008-f1497e04.json
 log_paths:
 - fixtures/logs/20260704T040413-db-stopped-w3-web.log
+deploy: fixtures/github/workflow_run/20260704T040413-a69e852d.json

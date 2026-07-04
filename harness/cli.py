@@ -99,6 +99,24 @@ def _cmd_scrub_fixtures(_args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_backfill_deploys(args: argparse.Namespace) -> int:
+    import os
+
+    from harness.deployfeed import backfill_deploys
+
+    # Sign with the fork's real GitHub webhook secret when available (env or flag),
+    # so the fixtures verify exactly as a genuine delivery would — parity with the
+    # Sentry fixtures (which verify against SENTRY_CLIENT_SECRET).
+    secret = args.secret or os.environ.get("CULPRIT_GH_WEBHOOK_SECRET") or None
+    stats = backfill_deploys(secret=secret)
+    signed = "signed" if secret else "unsigned"
+    print(
+        f"deploy feed: wrote {stats['fixtures_written']} {signed} workflow_run "
+        f"fixtures for {stats['runs']} runs -> fixtures/github/workflow_run/"
+    )
+    return 0
+
+
 def _not_implemented(task: str):
     def _run(_args: argparse.Namespace) -> int:
         print(f"'{_args.command}' is implemented in {task} (needs live infra).")
@@ -139,6 +157,18 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser(
         "scrub-fixtures", help="redact PII (emails) from recorded fixtures + re-sign"
     ).set_defaults(func=_cmd_scrub_fixtures)
+
+    bf = sub.add_parser(
+        "backfill-deploys",
+        help="generate the GitHub workflow_run deploy fixtures + link them in runs",
+    )
+    bf.add_argument(
+        "--secret",
+        default=None,
+        help="optional HMAC secret to sign fixtures (default: unsigned — "
+        "reconstructed payloads are not GitHub-delivered)",
+    )
+    bf.set_defaults(func=_cmd_backfill_deploys)
 
     for name, task in [
         ("up", "Task 3"),

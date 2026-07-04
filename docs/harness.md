@@ -113,6 +113,41 @@ protection OFF, `environment="fault-harness"`. The per-issue alert action
 interval (~5 min) means one `event_alert` per issue per run — the runner
 resolves/deletes the issue between runs and asserts webhook arrival.
 
+## Deploy feed (GitHub `workflow_run`)
+
+The GitHub half of the M2 ingest contract, mirroring the Sentry fixtures. Every
+recorded run shipped a deploy — the release task (decision 7) that set the Sentry
+release at `release_sha`. In production that deploy is theCourseForum2's **"AWS
+Deployment"** GitHub Actions workflow, and GitHub emits a `workflow_run` webhook
+describing it.
+
+- **Fixtures:** `fixtures/github/workflow_run/<ts>-<hex>.json`, one per run, in the
+  recorder envelope format. Each run record links its deploy via `deploy:`, and
+  the deploy's `workflow_run.head_sha` **is** that run's `release_sha`.
+- **Provenance:** reconstructed shape-faithfully from **real data** — the schema
+  from a real upstream production "AWS Deployment" run, `head_sha`/`head_commit`/
+  `repository`/`sender` from the real fork, only opaque ids/timestamps synthesized
+  (deterministically). Full breakdown + field deltas in
+  [`fixtures/github/workflow_run/PROVENANCE.md`](../fixtures/github/workflow_run/PROVENANCE.md).
+- **Fidelity note:** `event == "workflow_run"` because the real "AWS Deployment"
+  is *chained off CI* — a `push`-triggered fake would diverge on that field.
+- **Anti-leakage:** `head_branch` is normalized to `master`, never the internal
+  `fault/<id>-<ts>` branch — the deploy feed must not name the culprit
+  (`tests/test_corpus.py::test_deploy_feed_never_names_the_culprit`).
+- **Signatures:** signed with a **genuine** GitHub webhook secret
+  (`CULPRIT_GH_WEBHOOK_SECRET`, in `.env`, never committed) — it was configured on a
+  live `workflow_run` webhook on the fork and GitHub was confirmed delivering
+  genuine events signed with it (temporary webhook since torn down), so
+  `x-hub-signature-256` verifies as a real delivery would
+  (`test_deploy_webhook_signatures_verify`, env-gated like the Sentry one).
+- **Regenerate:** `set -a; source .env; set +a; culprit-harness backfill-deploys`
+  (offline + deterministic; the secret makes the fixtures signed — omit it for
+  unsigned).
+- **To record live instead:** add [`harness/fork/fake-deploy.yml`](../harness/fork/fake-deploy.yml)
+  to the fork's master, enable the fork's Actions, point a webhook at the recorder,
+  and merge a window to master. `fake-deploy.yml` mirrors the real aws.yml trigger,
+  so live payloads carry the same `event`/`head_branch`.
+
 ## Dump provenance
 
 `db/local.dump` (gitignored) is a snapshot of the seeded harness DB at migration

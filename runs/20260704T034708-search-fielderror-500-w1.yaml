@@ -23,3 +23,4 @@ fixture_paths:
 - fixtures/sentry/issue/20260704T034748259667-5fb7dc2a.json
 log_paths:
 - fixtures/logs/20260704T034708-search-fielderror-500-w1-web.log
+deploy: fixtures/github/workflow_run/20260704T034708-a5bca2f4.json

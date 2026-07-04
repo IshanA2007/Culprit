@@ -23,3 +23,4 @@ fixture_paths:
 - fixtures/sentry/issue/20260704T034620268065-53514674.json
 log_paths:
 - fixtures/logs/20260704T034551-template-noreversematch-instructor-card-w1-web.log
+deploy: fixtures/github/workflow_run/20260704T034551-4d983a3f.json

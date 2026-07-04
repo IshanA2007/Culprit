@@ -12,17 +12,30 @@ import hashlib
 import hmac
 import json
 import os
+import re
 import subprocess
 
 import pytest
 
-from harness.config import FIXTURES_DIR, TCF_WORK_DIR
+from harness.config import FIXTURES_DIR, REPO_ROOT, TCF_WORK_DIR
 from harness.runrecord import load_all_run_records
 
 RUNS = load_all_run_records()
 CODE_RUNS = [r for r in RUNS if r.fault_class == "code"]
 ABSTAIN_RUNS = [r for r in RUNS if r.ground_truth == "abstain"]
 BASELINE_RUNS = [r for r in RUNS if r.ground_truth == "no_incident"]
+
+GITHUB_DEPLOY_DIR = FIXTURES_DIR / "github" / "workflow_run"
+
+
+def _load_deploy(run):
+    """Load a run's deploy fixture -> (envelope, decoded workflow_run payload)."""
+    assert run.deploy, f"{run.run_id}: no deploy fixture linked"
+    path = REPO_ROOT / run.deploy
+    assert path.exists(), f"{run.run_id}: deploy fixture missing at {run.deploy}"
+    env = json.loads(path.read_text())
+    payload = json.loads(env["raw_body"].encode("latin-1"))
+    return env, payload
 
 
 def test_code_runs_culprit_in_window_never_release():
@@ -109,6 +122,125 @@ def test_recorded_webhook_signatures_verify():
         checked += 1
     if checked == 0:
         pytest.skip("no signed fixtures")
+
+
+# --- GitHub deploy-feed (workflow_run) invariants (plan Task 8) -------------
+
+
+def test_every_run_has_a_deploy_fixture():
+    """Every recorded run shipped a deploy; each links to a workflow_run fixture
+    in the recorder envelope format (the M2 deploy-feed ingest contract)."""
+    assert RUNS, "no runs recorded yet"
+    for r in RUNS:
+        env, _ = _load_deploy(r)
+        assert env["source"] == "github"
+        assert env["resource"] == "workflow_run"
+        assert env["headers"].get("x-github-event") == "workflow_run"
+
+
+def test_deploy_head_sha_is_the_release_sha():
+    """The deploy shipped the window head — so head_sha == release_sha, and it is
+    resolvable on the fork (asserted separately)."""
+    for r in RUNS:
+        _, p = _load_deploy(r)
+        wr = p["workflow_run"]
+        assert wr["head_sha"] == r.release_sha, (
+            f"{r.run_id}: deploy head_sha {wr['head_sha'][:10]} != release "
+            f"{r.release_sha[:10]}"
+        )
+        assert wr["head_commit"]["id"] == r.release_sha
+
+
+def test_deploy_event_is_workflow_run():
+    """Fidelity: a real 'AWS Deployment' is chained off CI, so the deploy's own
+    event is 'workflow_run' (not push/workflow_dispatch)."""
+    for r in RUNS:
+        _, p = _load_deploy(r)
+        assert p["workflow_run"]["event"] == "workflow_run", r.run_id
+
+
+def test_deploy_feed_never_names_the_culprit():
+    """Anti-leakage: the deploy feed must not expose the fault id/culprit — a
+    consumer that read the answer off head_branch would be cheating."""
+    for r in RUNS:
+        _, p = _load_deploy(r)
+        head_branch = p["workflow_run"]["head_branch"]
+        assert r.fault_id not in head_branch, (
+            f"{r.run_id}: fault id leaks into deploy head_branch={head_branch!r}"
+        )
+
+
+def test_deploy_payload_has_required_timeline_fields():
+    """The deploy-timeline schema M2 keys on must be present."""
+    required = {
+        "head_sha",
+        "head_branch",
+        "event",
+        "status",
+        "conclusion",
+        "run_started_at",
+        "updated_at",
+        "created_at",
+    }
+    for r in RUNS:
+        _, p = _load_deploy(r)
+        assert p["action"], r.run_id
+        wr = p["workflow_run"]
+        assert not (required - set(wr)), f"{r.run_id}: missing {required - set(wr)}"
+        assert p["workflow"]["name"] == "AWS Deployment"
+
+
+def test_deploy_webhook_signatures_verify():
+    """Every deploy fixture's `x-hub-signature-256` verifies against the fork's
+    real GitHub webhook secret (env-injected as CULPRIT_GH_WEBHOOK_SECRET, never
+    committed) — the GitHub parallel of the Sentry signature invariant."""
+    secret = os.environ.get("CULPRIT_GH_WEBHOOK_SECRET")
+    if not secret:
+        pytest.skip("CULPRIT_GH_WEBHOOK_SECRET not set")
+    if not GITHUB_DEPLOY_DIR.exists():
+        pytest.skip("no deploy fixtures yet")
+    checked = 0
+    for f in GITHUB_DEPLOY_DIR.rglob("*.json"):
+        env = json.loads(f.read_text())
+        sig = env["headers"].get("x-hub-signature-256")
+        if not sig:
+            continue
+        raw = env["raw_body"].encode("latin-1")
+        expected = (
+            "sha256=" + hmac.new(secret.encode(), raw, hashlib.sha256).hexdigest()
+        )
+        assert hmac.compare_digest(expected, sig), f"{f.name}: bad signature"
+        checked += 1
+    if checked == 0:
+        pytest.skip("no signed deploy fixtures")
+
+
+def test_deploy_fixtures_have_no_personal_emails():
+    """Corpus posture (handoff §6): no non-redacted personal emails in the deploy
+    feed. ``git@github.com`` (ssh_url) and ``*@users.noreply.github.com`` are
+    structural GitHub addresses, not PII."""
+    if not GITHUB_DEPLOY_DIR.exists():
+        return
+    email_re = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
+    allowed = {"redacted@example.com", "git@github.com"}
+    for f in GITHUB_DEPLOY_DIR.rglob("*.json"):
+        for m in email_re.findall(f.read_text()):
+            assert m in allowed or m.endswith("@users.noreply.github.com"), (
+                f"{f.name}: non-redacted personal email {m!r}"
+            )
+
+
+def test_no_orphaned_github_fixtures():
+    """Every deploy fixture is referenced by exactly one run (mirrors the Sentry
+    orphan invariant)."""
+    if not GITHUB_DEPLOY_DIR.exists():
+        return
+    referenced = {r.deploy for r in RUNS if r.deploy}
+    for f in GITHUB_DEPLOY_DIR.rglob("*.json"):
+        rel = str(f.relative_to(REPO_ROOT))
+        assert rel in referenced, (
+            f"orphaned deploy fixture (no run references it): {rel}"
+        )
 
 
 @pytest.mark.skipif(not TCF_WORK_DIR.exists(), reason="no working clone (CI)")

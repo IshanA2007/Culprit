@@ -37,3 +37,4 @@ decoy_config:
 fixture_paths: []
 log_paths:
 - fixtures/logs/20260704T040246-benign-deploy-baseline-w4-web.log
+deploy: fixtures/github/workflow_run/20260704T040246-c9f14b96.json

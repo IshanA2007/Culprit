@@ -1,0 +1,58 @@
+# AWS Deployment (harness deploy-feed workflow)
+#
+# ── What this is ────────────────────────────────────────────────────────────
+# The fork-side GitHub Actions workflow the M1 plan (Task 8) calls for. Its job
+# is to emit REAL `workflow_run` webhooks that match production "AWS Deployment"
+# payloads, so the recorder (harness/recorder/app.py) can capture the deploy feed
+# live — the GitHub half of Milestone 2's ingest contract.
+#
+# It is named "AWS Deployment" to match prod. That is collision-free because the
+# fork's real aws.yml is disabled on the `culprit-harness` branch (renamed
+# aws.yml.disabled). It runs a no-op deploy (no AWS creds required) — the point
+# is purely to make GitHub fire the workflow_run webhook.
+#
+# ── Fidelity: why `workflow_run`, not `push` ────────────────────────────────
+# The real aws.yml is *chained off CI* (triggered by the "Continuous Integration"
+# workflow completing on master). So a genuine deploy's own `workflow_run.event`
+# field is `workflow_run` — NOT `push`. This file mirrors that trigger exactly,
+# so live-captured payloads carry `event: workflow_run` and `head_branch: master`,
+# matching prod. (A workflow triggered by plain `push` would diverge on that
+# field — see harness/deployfeed.py.)
+#
+# ── Status ──────────────────────────────────────────────────────────────────
+# The committed corpus (fixtures/github/workflow_run/) reconstructs these payloads
+# from real upstream production runs via harness/deployfeed.py, but is SIGNED with
+# the fork's real GitHub webhook secret (CULPRIT_GH_WEBHOOK_SECRET): a live
+# workflow_run webhook is configured on the fork and GitHub was confirmed
+# delivering genuine signed events to it (2026-07-04). Fork Actions were found
+# already enabled (not dormant), so a push of this workflow runs immediately.
+#
+# To capture a RAW GitHub-delivered payload verbatim (not just reconstructed):
+#   1. gh auth refresh -h github.com -s admin:repo_hook   (adds the delivery-read scope)
+#   2. read the delivery log: gh api /repos/<fork>/hooks/<id>/deliveries/<delivery_id>
+#   (or point the webhook at a raw-capture endpoint / the recorder behind a tunnel)
+# See docs/harness.md ("Deploy feed") and fixtures/github/workflow_run/PROVENANCE.md.
+name: AWS Deployment
+
+on:
+  workflow_run:
+    workflows: ["Continuous Integration"]
+    branches: [master]
+    types:
+      - completed
+  # Manual trigger for on-demand deploy-feed recording.
+  workflow_dispatch: {}
+
+jobs:
+  deploy:
+    # Mirror the real aws.yml guard: only "deploy" when the upstream CI succeeded
+    # (or when dispatched manually).
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Simulate deploy (no AWS credentials needed)
+        run: |
+          echo "harness deploy of ${GITHUB_SHA} on ${GITHUB_REF_NAME}"
+          echo "this run exists to emit a real workflow_run webhook for the recorder"
