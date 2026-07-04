@@ -15,6 +15,7 @@ from fastapi import Depends, FastAPI, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from culprit.config import get_settings
+from culprit.correlation import correlate_signal
 from culprit.db import get_session
 from culprit.ingest.github import ingest_github
 from culprit.ingest.sentry import ingest_sentry
@@ -40,7 +41,13 @@ async def ingest_sentry_route(request: Request, session: SessionDep) -> dict:
         raise HTTPException(status_code=401, detail="invalid Sentry signature")
 
     signal = await ingest_sentry(session, raw, datetime.now(UTC))
-    return {"signal_id": signal.id if signal else None}
+    incident = await correlate_signal(
+        session, signal, get_settings().correlation_window_seconds
+    )
+    return {
+        "signal_id": signal.id if signal else None,
+        "incident_id": incident.id if incident else None,
+    }
 
 
 @app.post("/ingest/github")
