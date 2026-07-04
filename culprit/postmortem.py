@@ -270,7 +270,17 @@ def build_postmortem(
     title = f"Postmortem: {incident.correlation_key or f'incident #{incident.id}'}"
 
     impact = _impact_from_snapshot(diagnosis.get("impact"))
-    impact_line = impact.render() if impact else "**Impact:** not measured"
+    if impact and impact.failed_requests is not None:
+        impact_line = impact.render()
+    else:
+        # Honest zero: a latency/canary alarm carries no request count, and the
+        # logs recorded no error events — state the method even for "no measurable
+        # impact" (methodology-on-every-number, held for the empty case too).
+        impact_line = (
+            "**Impact:** ~0 measured failed requests (method: no server-side error "
+            "events in Sentry or the CloudWatch logs for this window — a latency or "
+            "canary alarm carries no request count)"
+        )
 
     parts: list[str] = [
         _frontmatter(incident, hypotheses),

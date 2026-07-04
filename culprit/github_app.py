@@ -135,6 +135,39 @@ class GitHubAppWriter:
         data = pull.json()
         return {"html_url": data.get("html_url"), "number": data.get("number")}
 
+    async def close_pull(self, number: int) -> None:
+        """Close (NOT merge) a PR — used to clean up the gated live-PR eval test.
+
+        Closing discards the PR; it is the opposite of merging, so it does not
+        violate the offer-only stance.
+        """
+        if not self.enabled:
+            return
+        token = await self._installation_token()
+        resp = await self._client.patch(
+            f"{self.base_url}/repos/{self.repo}/pulls/{number}",
+            headers={
+                "Authorization": f"Bearer {token}",
+                "Accept": "application/vnd.github+json",
+            },
+            json={"state": "closed"},
+        )
+        resp.raise_for_status()
+
+    async def delete_branch(self, branch: str) -> None:
+        """Delete a branch ref — cleans up after the gated live-PR eval test."""
+        if not self.enabled:
+            return
+        token = await self._installation_token()
+        resp = await self._client.delete(
+            f"{self.base_url}/repos/{self.repo}/git/refs/heads/{branch}",
+            headers={
+                "Authorization": f"Bearer {token}",
+                "Accept": "application/vnd.github+json",
+            },
+        )
+        resp.raise_for_status()
+
     async def aclose(self) -> None:
         if self._owns_client:
             await self._client.aclose()

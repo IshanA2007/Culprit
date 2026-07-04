@@ -140,3 +140,28 @@ async def test_writer_base64_encodes_file_content():
     sent = _json.loads(captured["content"])
     assert base64.b64decode(sent["content"]).decode() == "# Postmortem\n\nbody text\n"
     assert sent["branch"] == "culprit/postmortem-7-fielderror"
+
+
+async def test_cleanup_closes_pr_and_deletes_branch_never_merges():
+    calls: list[tuple[str, str]] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        path = request.url.path
+        calls.append((request.method, path))
+        if path.endswith("/access_tokens"):
+            return httpx.Response(201, json={"token": "t"})
+        if "/merge" in path:
+            raise AssertionError("cleanup must never merge")
+        return httpx.Response(200, json={})
+
+    client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    writer = GitHubAppWriter("a", _rsa_pem(), "i", _REPO, client=client)
+    try:
+        await writer.close_pull(5)
+        await writer.delete_branch("culprit/postmortem-7-fielderror")
+    finally:
+        await client.aclose()
+
+    assert any(m == "PATCH" and p.endswith("/pulls/5") for m, p in calls)
+    assert any(m == "DELETE" and "/git/refs/heads/" in p for m, p in calls)
+    assert not any("/merge" in p for _, p in calls)

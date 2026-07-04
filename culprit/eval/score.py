@@ -180,6 +180,25 @@ def format_report(agg: dict, entries: list[dict]) -> str:
     return "\n".join(lines)
 
 
+def format_postmortem_section(pm: dict | None) -> str:
+    """Render the M4 postmortem-completeness section (deterministic, dry-run)."""
+    if pm is None:
+        return ""
+    fc, so = pm["fix_captured"], pm["sns_ok_resolved"]
+    pct = f"  ({pm['complete'] / pm['n']:.0%})" if pm["n"] else ""
+    return "\n".join(
+        [
+            "",
+            f"Postmortem completeness (dry-run, deterministic)  N={pm['n']}",
+            f"  complete drafts (timeline·culprit/abstain·impact+method·"
+            f"hypothesis·fix-or-absence) : {pm['complete']}/{pm['n']}{pct}",
+            f"  fixing commit captured (code faults)   : {fc['correct']}/{fc['n']}",
+            f"  resolved via SNS ALARM->OK (infra)     : {so['correct']}/{so['n']}",
+            "=" * 64,
+        ]
+    )
+
+
 def format_gated_sections(runbook: dict | None, similar: dict | None) -> str:
     """Render the gated (LLM/Voyage) eval sections, each with its own N."""
     lines: list[str] = []

@@ -74,19 +74,30 @@ def _cmd_eval(args: argparse.Namespace) -> int:
         evaluate_runbook_precision,
         evaluate_similar_retrieval,
     )
-    from culprit.eval.score import format_gated_sections, format_report
+    from culprit.eval.postmortem_eval import evaluate_postmortem_completeness
+    from culprit.eval.score import (
+        format_gated_sections,
+        format_postmortem_section,
+        format_report,
+    )
     from culprit.github_api import GitHubClient
     from culprit.llm import LLM
     from culprit.similar import VoyageEmbedder
 
-    async def _run() -> tuple[dict, list[dict], dict | None, dict | None]:
+    async def _run():
         settings = get_settings()
         github = GitHubClient(settings.github_token, settings.github_repo)
         maker = get_sessionmaker()
-        runbook = similar = None
+        runbook = similar = postmortem = None
         try:
             async with maker() as session:
                 agg, entries = await evaluate_all(session, github=github)
+                # Postmortem completeness is deterministic (M4) — runs whenever the
+                # window reads work (github token), no gated key needed.
+                if settings.github_token:
+                    postmortem = await evaluate_postmortem_completeness(
+                        session, github=github
+                    )
                 # Gated sections run only with their key present (own N each).
                 if not args.no_gated and settings.anthropic_api_key:
                     runbook = await evaluate_runbook_precision(
@@ -100,9 +111,9 @@ def _cmd_eval(args: argparse.Namespace) -> int:
                     )
         finally:
             await github.aclose()
-        return agg, entries, runbook, similar
+        return agg, entries, runbook, similar, postmortem
 
-    agg, entries, runbook, similar = asyncio.run(_run())
+    agg, entries, runbook, similar, postmortem = asyncio.run(_run())
     if args.json:
         print(
             _json.dumps(
@@ -111,6 +122,7 @@ def _cmd_eval(args: argparse.Namespace) -> int:
                     "runs": entries,
                     "runbook": runbook,
                     "similar": similar,
+                    "postmortem": postmortem,
                 },
                 indent=2,
                 default=str,
@@ -118,6 +130,9 @@ def _cmd_eval(args: argparse.Namespace) -> int:
         )
     else:
         print(format_report(agg, entries))
+        pm_section = format_postmortem_section(postmortem)
+        if pm_section:
+            print(pm_section)
         gated = format_gated_sections(runbook, similar)
         if gated:
             print(gated)
